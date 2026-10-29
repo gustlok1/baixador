@@ -2,6 +2,11 @@
 
 Baixe vídeos e áudios direto para a sua pasta, com fila, pausa, histórico e modo compacto. Gratuito e de código aberto (licença MIT). Feito com [yt-dlp](https://github.com/yt-dlp/yt-dlp), [ffmpeg](https://ffmpeg.org) e [pywebview](https://pywebview.flowrl.com).
 
+## O que faz
+
+- Baixa vídeos e playlists (fila, pausa, retomada, histórico, modo compacto).
+- **Converte arquivos do seu computador**: extrai o áudio de um vídeo ou troca o formato (mp4, mkv, webm, mp3, m4a, wav, opus, flac). Arraste os arquivos para a aba Converter. O original nunca é alterado. Precisa do ffmpeg.
+
 ## Rodar pelo código
 
 ```
@@ -13,7 +18,9 @@ No Windows é preciso o Microsoft Edge WebView2 Runtime (já vem no Windows 10 e
 
 ## Gerar o .exe
 
-Execute `gerar_exe.bat`. O arquivo sai em `dist\Baixador.exe`.
+Precisa do Python instalado (python.org, marcando "Add python.exe to PATH"). Execute `gerar_exe.bat`; o arquivo sai em `dist\Baixador.exe`. Quem só vai usar o app não precisa de Python: basta o .exe.
+
+Sem instalar nada: suba o projeto no GitHub e rode o workflow "Build Windows" (aba Actions). O .exe sai como artefato, ou na Release se você criar uma tag `v*`.
 
 ## ffmpeg
 
@@ -39,5 +46,3 @@ python tests/rodar.py /tmp/prints   # interface no Chromium, com a API simulada 
 ## Aviso
 
 Use apenas para conteúdo que você tem direito de baixar. Respeite os termos dos sites e os direitos autorais. As fontes Montserrat e Michroma são distribuídas sob a licença OFL.
-# baixador
-# baixador

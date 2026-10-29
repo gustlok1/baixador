@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Baixador de Vídeos</title>
+<meta name="description" content="App gratuito para Windows que baixa vídeos e áudios, converte formatos e guarda tudo na sua pasta. Sem anúncios, sem cadastro, de código aberto.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=Montserrat:wght@200;300;400;500;600&display=swap">
+<style>
+html{-webkit-text-size-adjust:100%}body{margin:0}img{max-width:100%}[hidden]{display:none!important}
+/* Layout: coluna central de ~1200px; títulos display e wordmark de rodapé sangram até as bordas. Escuro é o tema principal (Obsidiana). */
+:root {
+  --bg: #050507; --bg-raised: #0e0f12; --line: #1d1f24; --line-strong: #5c6068;
+  --ink: #f5f6f8; --ink-soft: #9a9da4; --ink-faint: #7c7f86; --ghost: #17191d;
+  --on-ink: #050507; --accent: #9cc3e6; --ok: #7fd1a4;
+  --glow: 0 0 140px 10px rgba(245, 246, 248, 0.09);
+  --sans: "Montserrat", "Helvetica Neue", Arial, sans-serif;
+  --wide: "Michroma", "Montserrat", "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --gutter: clamp(16px, 4vw, 48px);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f4f4f2; --bg-raised: #ffffff; --line: #dededa; --line-strong: #8a8c88;
+    --ink: #0a0b0d; --ink-soft: #55585e; --ink-faint: #6a6d73; --ghost: #e3e3df;
+    --on-ink: #f5f6f8; --accent: #2f6a9e; --ok: #1f7a4a;
+    --glow: 0 0 140px 10px rgba(10, 11, 13, 0.07);
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #f4f4f2; --bg-raised: #ffffff; --line: #dededa; --line-strong: #8a8c88;
+  --ink: #0a0b0d; --ink-soft: #55585e; --ink-faint: #6a6d73; --ghost: #e3e3df;
+  --on-ink: #f5f6f8; --accent: #2f6a9e; --ok: #1f7a4a;
+  --glow: 0 0 140px 10px rgba(10, 11, 13, 0.07);
+  color-scheme: light;
+}
+
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-weight: 300; font-size: 16px; line-height: 26px; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { color: inherit; }
+h1, h2, h3, p { margin: 0; }
+h1, h2, h3 { text-wrap: balance; }
+:focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.wrap { max-width: 1200px; margin: 0 auto; box-sizing: border-box;
+  padding-left: max(var(--gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--gutter), env(safe-area-inset-right, 0px)); }
+
+.label { font-size: 13px; line-height: 16px; font-weight: 500; letter-spacing: 0.24em; text-transform: uppercase; }
+.caption { font-size: 13px; line-height: 20px; letter-spacing: 0.06em; color: var(--ink-faint); }
+.tag { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; box-sizing: border-box; border: 1px solid var(--line-strong); border-radius: 999px; font-size: 10px; line-height: 14px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); white-space: nowrap; }
+.ic { fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+/* Botões */
+.btn { display: inline-flex; align-items: center; gap: 18px; min-height: 56px; box-sizing: border-box; border-radius: 999px; text-decoration: none; font-family: var(--sans); font-size: 13px; font-weight: 500; letter-spacing: 0.24em; text-transform: uppercase; cursor: pointer; transition: opacity .4s ease, border-color .4s ease, background-color .4s ease; }
+.btn-solid { padding: 0 10px 0 28px; background: var(--ink); color: var(--on-ink); border: 1px solid var(--ink); }
+.btn-solid:hover { opacity: .86; }
+.btn-ghost { padding: 0 26px; background: transparent; color: var(--ink); border: 1px solid var(--line-strong); }
+.btn-ghost:hover { border-color: var(--ink); }
+.btn .orb { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: 1px solid currentColor; border-radius: 50%; }
+.icon-btn { width: 44px; height: 44px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--line-strong); border-radius: 50%; background: transparent; color: var(--ink); cursor: pointer; transition: border-color .4s ease; }
+.icon-btn:hover { border-color: var(--ink); }
+
+/* Cabeçalho */
+.site-header .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 32px; padding-block: 24px; }
+.wordmark { font-family: var(--wide); font-size: 22px; line-height: 1; letter-spacing: 0.04em; text-decoration: none; }
+.nav { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 28px; }
+.nav a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; color: var(--ink-faint); transition: color .4s ease; }
+.nav a:hover { color: var(--ink); }
+.header-actions { display: flex; align-items: center; gap: 12px; }
+.header-actions .btn { min-height: 44px; padding: 0 20px; }
+
+/* Hero */
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); align-items: center; gap: 56px 64px; padding-block: 64px 120px; }
+.hero-copy { display: flex; flex-direction: column; gap: 28px; min-width: 0; }
+.hero h1 { font-size: clamp(40px, 6.2vw, 88px); line-height: 0.95; font-weight: 500; letter-spacing: -0.01em; text-transform: uppercase; }
+.hero h1 .line { display: block; }
+.hero h1 .slash { color: var(--ink-faint); font-weight: 200; margin-right: 0.18em; }
+.hero .lead { max-width: 46ch; font-size: 18px; line-height: 28px; color: var(--ink-soft); }
+.cta-row { display: flex; flex-wrap: wrap; gap: 12px; }
+.fine { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.fine .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--line-strong); }
+
+/* Objeto do hero: a janela do app sob o holofote */
+.stage { position: relative; display: flex; justify-content: center; align-items: center; min-width: 0; padding: 40px 0; }
+.orbit { position: absolute; left: 50%; top: 50%; width: min(620px, 118%); aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none; }
+.orbit svg { width: 100%; height: 100%; overflow: visible; }
+.halo { position: absolute; left: 50%; top: 50%; width: 220px; height: 220px; transform: translate(-50%, -50%); border-radius: 50%; box-shadow: var(--glow); pointer-events: none; }
+.mock { position: relative; width: 100%; max-width: 480px; border: 1px solid var(--line-strong); background: var(--bg-raised); font-size: 12px; line-height: 18px; }
+.mock-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.mock-bar .wm { font-family: var(--wide); font-size: 11px; letter-spacing: 0.04em; }
+.mock-bar .win { display: flex; gap: 14px; color: var(--ink-faint); }
+.mock-body { display: flex; flex-direction: column; gap: 14px; padding: 18px; }
+.mock-field { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 6px 0 12px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--bg); color: var(--ink-faint); }
+.mock-field .url { flex: 1; min-width: 0; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mock-pill { display: inline-flex; align-items: center; height: 26px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 999px; font-size: 9px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink); white-space: nowrap; }
+.mock-pill.on { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
+.mock-pill.off { border-color: var(--line); color: var(--ink-faint); text-decoration: line-through; }
+.mock-preview { display: flex; gap: 14px; align-items: center; padding: 12px; border: 1px solid var(--line); }
+.mock-thumb { position: relative; flex: 0 0 112px; height: 63px; background: var(--ghost); display: flex; align-items: center; justify-content: center; color: var(--ink); }
+.mock-thumb .play { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--line-strong); border-radius: 50%; }
+.mock-thumb .dur { position: absolute; right: 4px; bottom: 4px; padding: 0 4px; background: var(--bg); font-size: 9px; line-height: 14px; }
+.mock-preview .t { font-size: 13px; line-height: 18px; font-weight: 400; }
+.mock-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.mock-card { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--line); }
+.mock-card .top { display: flex; justify-content: space-between; gap: 10px; }
+.mock-card .top span:first-child { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar { height: 2px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 2px; width: 42%; background: var(--ink); animation: fill 6s ease-in-out infinite; }
+@keyframes fill { 0% { width: 18%; } 80% { width: 92%; } 100% { width: 92%; } }
+.mock-cta { display: flex; align-items: center; justify-content: center; height: 40px; border-radius: 999px; background: var(--ink); color: var(--on-ink); font-size: 10px; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase; }
+
+/* Títulos display */
+.display { display: block; padding-block: 0 56px; font-size: clamp(64px, 14.5vw, 176px); line-height: 0.92; font-weight: 200; letter-spacing: -0.035em; white-space: nowrap; overflow: hidden;
+  background: linear-gradient(90deg, var(--ink-faint) 0%, var(--ink) 22%, var(--ink) 70%, var(--ink-faint) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent; }
+.section { padding-block: 120px 0; }
+.section-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 48px; }
+.section-head p { max-width: 44ch; font-size: 18px; line-height: 28px; color: var(--ink-soft); padding-bottom: 64px; }
+
+/* Recursos */
+.features { list-style: none; margin: 0; padding: 0; border-bottom: 1px solid var(--line); }
+.feature { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) auto; align-items: center; gap: 16px 48px; padding-block: 36px; border-top: 1px solid var(--line); }
+.feature h3 { font-size: clamp(26px, 3.2vw, 40px); line-height: 1.1; font-weight: 300; letter-spacing: -0.02em; }
+.feature p { color: var(--ink-soft); max-width: 52ch; }
+.feature .mark { display: flex; align-items: center; gap: 12px; justify-self: end; }
+.feature .circle { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--line-strong); border-radius: 50%; color: var(--ink); }
+.feature.soon h3 { color: var(--ink-soft); }
+.feature.soon .circle { border-color: var(--line); color: var(--ink-faint); }
+
+/* Confiança */
+.trust { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.trust > div { display: flex; flex-direction: column; gap: 18px; padding: 40px 32px 44px 0; min-width: 0; }
+.trust > div + div { padding-left: 32px; border-left: 1px solid var(--line); }
+.trust .circle { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--line-strong); border-radius: 50%; }
+.trust h3 { font-size: 24px; line-height: 32px; font-weight: 400; letter-spacing: -0.005em; }
+.trust p { color: var(--ink-soft); }
+.trust .accent { color: var(--accent); border-color: var(--accent); }
+
+/* Passos */
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 48px; }
+.step { display: flex; flex-direction: column; gap: 18px; padding-top: 28px; border-top: 1px solid var(--line-strong); min-width: 0; }
+.step .n { font-size: 64px; line-height: 1; font-weight: 200; letter-spacing: -0.02em; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.step h3 { font-size: 24px; line-height: 32px; font-weight: 400; }
+.step p { color: var(--ink-soft); }
+code, .file { font-family: var(--mono); font-size: 14px; color: var(--ink); }
+.file { display: inline-flex; align-items: center; gap: 10px; align-self: flex-start; padding: 10px 14px; border: 1px solid var(--line); background: var(--bg-raised); }
+.smartscreen { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 14px; border: 1px solid var(--line); background: var(--bg-raised); font-size: 13px; line-height: 20px; }
+.smartscreen .key { display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border: 1px solid var(--line-strong); font-weight: 400; }
+.smartscreen .key.go { border-color: var(--ink); }
+.smartscreen svg { color: var(--ink-faint); }
+
+/* FAQ */
+.faq { border-bottom: 1px solid var(--line); }
+.faq details { border-top: 1px solid var(--line); }
+.faq summary { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-block: 32px; cursor: pointer; list-style: none; font-size: 24px; line-height: 32px; font-weight: 400; letter-spacing: -0.005em; }
+.faq summary::-webkit-details-marker { display: none; }
+.plus { position: relative; flex-shrink: 0; width: 44px; height: 44px; border: 1px solid var(--line-strong); border-radius: 50%; }
+.plus::before, .plus::after { content: ""; position: absolute; left: 50%; top: 50%; width: 14px; height: 1px; background: var(--ink); transform: translate(-50%, -50%); transition: transform .4s ease; }
+.plus::after { transform: translate(-50%, -50%) rotate(90deg); }
+.faq details[open] .plus::after { transform: translate(-50%, -50%) rotate(0deg); }
+.faq .answer { max-width: 62ch; padding-bottom: 32px; color: var(--ink-soft); }
+
+/* Apoio */
+.support { margin-top: 120px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--bg-raised); }
+.support .wrap { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 40px 64px; align-items: center; padding-block: 72px; }
+.support h2 { font-size: clamp(32px, 4.4vw, 48px); line-height: 1.1; font-weight: 300; letter-spacing: -0.02em; }
+.support p { max-width: 52ch; color: var(--ink-soft); font-size: 18px; line-height: 28px; }
+.support-copy { display: flex; flex-direction: column; gap: 20px; }
+.pix { display: flex; flex-wrap: wrap; gap: 24px; align-items: center; padding: 24px; border: 1px solid var(--line-strong); background: var(--bg); }
+.qr { flex: 0 0 132px; height: 132px; display: flex; align-items: center; justify-content: center; text-align: center; border: 1px solid var(--line-strong); background:
+  repeating-linear-gradient(0deg, transparent 0 11px, var(--line) 11px 12px),
+  repeating-linear-gradient(90deg, transparent 0 11px, var(--line) 11px 12px); }
+.qr span { padding: 4px 8px; background: var(--bg); }
+.pix-info { flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.pix-key { font-family: var(--mono); font-size: 15px; line-height: 22px; overflow-wrap: anywhere; user-select: all; }
+.pix .btn { min-height: 44px; padding: 0 20px; align-self: flex-start; }
+
+/* Rodapé */
+.site-footer { overflow: hidden; }
+.site-footer .wrap { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 32px 64px; padding-block: 72px 40px; }
+.site-footer p { max-width: 60ch; color: var(--ink-soft); font-size: 14px; line-height: 22px; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 4px 28px; justify-content: flex-end; align-content: flex-start; }
+.footer-links a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; color: var(--ink-faint); }
+.footer-links a:hover { color: var(--ink); }
+.ghost-mark { display: block; font-family: var(--wide); font-size: clamp(72px, 21vw, 300px); line-height: 0.9; letter-spacing: -0.02em; color: var(--ghost); white-space: nowrap; text-align: center; margin-bottom: -0.12em; user-select: none; }
+
+@media (max-width: 960px) {
+  .hero .wrap { grid-template-columns: minmax(0, 1fr); padding-block: 40px 96px; }
+  .feature { grid-template-columns: minmax(0, 1fr) auto; }
+  .feature p { grid-column: 1 / -1; grid-row: 2; }
+  .feature .mark { grid-column: 2; grid-row: 1; }
+  .trust, .steps { grid-template-columns: minmax(0, 1fr); }
+  .trust > div, .trust > div + div { padding: 32px 0; border-left: 0; }
+  .trust > div + div { border-top: 1px solid var(--line); }
+  .steps { gap: 40px; }
+  .support .wrap, .site-footer .wrap { grid-template-columns: minmax(0, 1fr); }
+  .footer-links { justify-content: flex-start; }
+}
+@media (max-width: 560px) {
+  .nav { display: none; }
+  .faq summary { font-size: 19px; line-height: 26px; }
+  .section { padding-block: 88px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bar i { animation: none; width: 42%; }
+  .btn, .icon-btn, .plus::before, .plus::after { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="wordmark" href="#topo" aria-label="baixador, início">baixador</a>
+    <nav class="nav label" aria-label="Seções">
+      <a href="#recursos">Recursos</a>
+      <a href="#confianca">Segurança</a>
+      <a href="#comecar">Como começar</a>
+      <a href="#perguntas">Perguntas</a>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Alternar tema claro e escuro" title="Tema">
+        <svg class="ic" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7"></circle><path d="M10 3a7 7 0 0 1 0 14z" style="fill: currentColor"></path></svg>
+      </button>
+      <a class="btn btn-ghost" href="https://github.com/gustlok1/baixador/releases/latest/download/Baixador.exe">Baixar</a>
+    </div>
+  </div>
+</header>
+
+<main id="topo">
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+      <div class="hero-copy">
+        <span class="label" style="color: var(--ink-faint)">Para Windows 10 e 11</span>
+        <h1 id="hero-title" aria-label="Baixe e converta vídeos sem complicação.">
+          <span class="line" aria-hidden="true">Baixe e converta</span>
+          <span class="line" aria-hidden="true"><span class="slash">/</span>vídeos</span>
+          <span class="line" aria-hidden="true"><span class="slash">/</span>sem complicação</span>
+        </h1>
+        <p class="lead">Um app gratuito para Windows que baixa vídeos e áudios, converte formatos e guarda tudo na sua pasta. Sem anúncios, sem cadastro, de código aberto.</p>
+        <div class="cta-row">
+          <a class="btn btn-solid" href="https://github.com/gustlok1/baixador/releases/latest/download/Baixador.exe">Baixar para Windows<span class="orb" aria-hidden="true"><svg class="ic" width="18" height="18" viewBox="0 0 20 20"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 17h12"></path></svg></span></a>
+          <a class="btn btn-ghost" href="https://github.com/gustlok1/baixador">Ver no GitHub</a>
+        </div>
+        <p class="fine caption"><span>Gratuito</span><span class="dot" aria-hidden="true"></span><span>Windows 10 e 11</span><span class="dot" aria-hidden="true"></span><span>Um arquivo só, sem instalação</span></p>
+      </div>
+
+      <figure class="stage" style="margin: 0">
+        <figcaption class="sr-only">Prévia do app: link colado, miniatura do vídeo, qualidades disponíveis e um download em andamento.</figcaption>
+        <div class="orbit" aria-hidden="true">
+          <svg viewBox="0 0 200 200">
+            <circle cx="100" cy="100" r="99" fill="none" stroke="var(--line)" stroke-width="0.3"></circle>
+            <circle cx="100" cy="100" r="72" fill="none" stroke="var(--line-strong)" stroke-width="0.3"></circle>
+            <circle cx="150.9" cy="49.1" r="1.4" fill="var(--accent)"></circle>
+            <circle cx="28" cy="100" r="0.9" fill="var(--line-strong)"></circle>
+            <circle cx="100" cy="199" r="0.8" fill="var(--line-strong)"></circle>
+          </svg>
+        </div>
+        <span class="halo" aria-hidden="true"></span>
+        <div class="mock" aria-hidden="true">
+          <div class="mock-bar">
+            <span class="wm">baixador</span>
+            <span class="win">
+              <svg class="ic" width="10" height="10" viewBox="0 0 10 10"><path d="M1 5h8"></path></svg>
+              <svg class="ic" width="10" height="10" viewBox="0 0 10 10"><rect x="1.5" y="1.5" width="7" height="7"></rect></svg>
+              <svg class="ic" width="10" height="10" viewBox="0 0 10 10"><path d="M1.5 1.5l7 7M8.5 1.5l-7 7"></path></svg>
+            </span>
+          </div>
+          <div class="mock-body">
+            <div class="mock-field">
+              <svg class="ic" width="14" height="14" viewBox="0 0 20 20"><path d="M8.5 11.5a3.5 3.5 0 0 0 5 0l2.5-2.5a3.5 3.5 0 0 0-5-5l-1 1"></path><path d="M11.5 8.5a3.5 3.5 0 0 0-5 0L4 11a3.5 3.5 0 0 0 5 5l1-1"></path></svg>
+              <span class="url">youtube.com/watch?v=8fK2pQx1LmA</span>
+              <span class="mock-pill">Colar</span>
+            </div>
+            <div class="mock-preview">
+              <span class="mock-thumb"><span class="play"><svg class="ic" width="10" height="10" viewBox="0 0 20 20"><path d="M8 6.5v7l6-3.5z"></path></svg></span><span class="dur">12:47</span></span>
+              <span style="display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+                <span class="t">Como montar um estúdio de gravação em casa</span>
+                <span style="color: var(--ink-faint)">Estúdio Norte · 12 min</span>
+              </span>
+            </div>
+            <div class="mock-row">
+              <span class="mock-pill on">mp4</span><span class="mock-pill">mkv</span><span class="mock-pill">mp3</span>
+              <span class="mock-pill off">4K</span><span class="mock-pill on">1080p</span><span class="mock-pill">720p</span>
+            </div>
+            <div class="mock-card">
+              <span class="top"><span>[3/12] Aula 03: luz natural e janelas</span><span style="color: var(--ink-faint); flex-shrink: 0">mp4</span></span>
+              <span class="bar"><i></i></span>
+              <span class="top" style="color: var(--ink-faint)"><span>Baixando</span><span>5,2 MB/s · 49 s</span></span>
+            </div>
+            <span class="mock-cta">Adicionar à fila e baixar</span>
+          </div>
+        </div>
+      </figure>
+    </div>
+  </section>
+
+  <section id="recursos" class="section" aria-labelledby="recursos-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="recursos-title" class="display">Recursos</h2>
+      </div>
+      <ul class="features">
+        <li class="feature">
+          <h3>Cole o link e pronto</h3>
+          <p>Mostra miniatura, título e só as qualidades que o vídeo realmente tem.</p>
+          <span class="mark"><span class="circle" aria-hidden="true"><svg class="ic" width="20" height="20" viewBox="0 0 20 20"><path d="M8.5 11.5a3.5 3.5 0 0 0 5 0l2.5-2.5a3.5 3.5 0 0 0-5-5l-1 1"></path><path d="M11.5 8.5a3.5 3.5 0 0 0-5 0L4 11a3.5 3.5 0 0 0 5 5l1-1"></path></svg></span></span>
+        </li>
+        <li class="feature">
+          <h3>Fila de verdade</h3>
+          <p>Vários downloads ao mesmo tempo, com pausa, retomada e histórico.</p>
+          <span class="mark"><span class="circle" aria-hidden="true"><svg class="ic" width="20" height="20" viewBox="0 0 20 20"><path d="M4 5.5h12M4 10h12M4 14.5h7"></path></svg></span></span>
+        </li>
+        <li class="feature">
+          <h3>Vídeo ou áudio</h3>
+          <p>Baixe em mp4, mkv ou webm, ou extraia só o áudio em mp3, m4a, flac e outros.</p>
+          <span class="mark"><span class="circle" aria-hidden="true"><svg class="ic" width="20" height="20" viewBox="0 0 20 20"><path d="M8 14.5V5.5l8-1.5v9"></path><circle cx="6" cy="14.5" r="2"></circle><circle cx="14" cy="13" r="2"></circle></svg></span></span>
+        </li>
+        <li class="feature soon">
+          <h3>Converta o que já está no seu PC</h3>
+          <p>Extraia o áudio de um vídeo ou troque o formato de arquivos que você já tem.</p>
+          <span class="mark"><span class="tag">Em breve</span><span class="circle" aria-hidden="true"><svg class="ic" width="20" height="20" viewBox="0 0 20 20"><path d="M4 7h10l-3-3M16 13H6l3 3"></path></svg></span></span>
+        </li>
+        <li class="feature soon">
+          <h3>Mais plataformas</h3>
+          <p>Hoje começamos pelo YouTube. Instagram, TikTok e outras redes entram a seguir.</p>
+          <span class="mark"><span class="tag">Em breve</span><span class="circle" aria-hidden="true"><svg class="ic" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"></circle><path d="M3 10h14M10 3c2 2 3 4.5 3 7s-1 5-3 7c-2-2-3-4.5-3-7s1-5 3-7z"></path></svg></span></span>
+        </li>
+        <li class="feature">
+          <h3>Modo compacto</h3>
+          <p>Uma janelinha discreta para colar o link e seguir com o seu dia.</p>
+          <span class="mark"><span class="circle" aria-hidden="true"><svg class="ic" width="20" height="20" viewBox="0 0 20 20"><path d="M8 3v5H3M12 17v-5h5M8 8 3 3M12 12l5 5"></path></svg></span></span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="confianca" class="section" aria-labelledby="confianca-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="confianca-title" class="display">Confiança</h2>
+      </div>
+      <div class="trust">
+        <div>
+          <span class="circle accent" aria-hidden="true"><svg class="ic" width="20" height="20" viewBox="0 0 20 20"><path d="M7 6 3 10l4 4M13 6l4 4-4 4"></path></svg></span>
+          <h3>Código aberto</h3>
+          <p>Qualquer pessoa pode ler o que o app faz.</p>
+          <a class="label" href="https://github.com/gustlok1/baixador" style="display: inline-flex; align-items: center; min-height: 44px; text-underline-offset: 6px; text-decoration-color: var(--line-strong);">Ver o código</a>
+        </div>
+        <div>
+          <span class="circle" aria-hidden="true"><svg class="ic" width="20" height="20" viewBox="0 0 20 20"><rect x="3" y="4" width="14" height="10" rx="1"></rect><path d="M7 17h6M10 14v3"></path></svg></span>
+          <h3>Tudo fica no seu PC</h3>
+          <p>Seus arquivos e seu histórico ficam no seu computador. Nada é enviado para servidor nenhum.</p>
+        </div>
+        <div>
+          <span class="circle" aria-hidden="true"><svg class="ic" width="20" height="20" viewBox="0 0 20 20"><path d="M16 10a6 6 0 1 1-1.76-4.24M16 4v3.5h-3.5"></path></svg></span>
+          <h3>Ferramentas conhecidas</h3>
+          <p>Usa o yt-dlp e o ffmpeg, mantidos pela comunidade, e se atualiza para acompanhar as mudanças dos sites.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="comecar" class="section" aria-labelledby="comecar-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="comecar-title" class="display">Começar</h2>
+        <p>Três passos, uns dois minutos.</p>
+      </div>
+      <ol class="steps">
+        <li class="step">
+          <span class="n" aria-hidden="true">1</span>
+          <h3>Baixe o app</h3>
+          <p>Um arquivo só, sem instalador.</p>
+          <span class="file"><svg class="ic" width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 17h12"></path></svg>Baixador.exe</span>
+        </li>
+        <li class="step">
+          <span class="n" aria-hidden="true">2</span>
+          <h3>Abra</h3>
+          <p>Se o Windows avisar que não reconhece o app, clique em “Mais informações” e depois em “Executar assim mesmo”.</p>
+          <span class="smartscreen" aria-hidden="true">
+            <span class="key">Mais informações</span>
+            <svg class="ic" width="16" height="16" viewBox="0 0 20 20"><path d="M4 10h12M11 5l5 5-5 5"></path></svg>
+            <span class="key go">Executar assim mesmo</span>
+          </span>
+        </li>
+        <li class="step">
+          <span class="n" aria-hidden="true">3</span>
+          <h3>Cole o link</h3>
+          <p>Na primeira vez, ele oferece baixar o ffmpeg (cerca de 90 MB) para liberar as conversões. Depois é só colar o link.</p>
+        </li>
+      </ol>
+      <div class="cta-row" style="margin-top: 56px;">
+        <a class="btn btn-solid" href="https://github.com/gustlok1/baixador/releases/latest/download/Baixador.exe">Baixar para Windows<span class="orb" aria-hidden="true"><svg class="ic" width="18" height="18" viewBox="0 0 20 20"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 17h12"></path></svg></span></a>
+      </div>
+    </div>
+  </section>
+
+  <section id="perguntas" class="section" aria-labelledby="perguntas-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="perguntas-title" class="display">Perguntas</h2>
+      </div>
+      <div class="faq">
+        <details>
+          <summary>É grátis mesmo?<span class="plus" aria-hidden="true"></span></summary>
+          <p class="answer">Sim, sem anúncios e sem versão paga.</p>
+        </details>
+        <details>
+          <summary>Precisa instalar o Python?<span class="plus" aria-hidden="true"></span></summary>
+          <p class="answer">Não. É um arquivo só.</p>
+        </details>
+        <details>
+          <summary>Funciona no Mac ou no Linux?<span class="plus" aria-hidden="true"></span></summary>
+          <p class="answer">Por enquanto, só no Windows.</p>
+        </details>
+        <details>
+          <summary>Por que o Windows avisou?<span class="plus" aria-hidden="true"></span></summary>
+          <p class="answer">O app ainda não tem assinatura digital paga. O código está aberto no GitHub para você conferir.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="support" aria-labelledby="apoio-title">
+    <div class="wrap">
+      <div class="support-copy">
+        <span class="label" style="color: var(--ink-faint)">Apoie o projeto</span>
+        <h2 id="apoio-title">Se ele te poupou tempo</h2>
+        <p>Este app é gratuito e feito com carinho. Se ele te poupou tempo e você quiser ajudar a criar mais iniciativas assim, um Pix de qualquer valor já deixa o dia melhor. Se não der, tudo bem: use à vontade.</p>
+      </div>
+      <div class="pix">
+        <div class="qr" role="img" aria-label="Espaço para o QR code do Pix"><span class="caption">QR code<br>do Pix</span></div>
+        <div class="pix-info">
+          <span class="label" style="color: var(--ink-faint)">Chave Pix</span>
+          <span class="pix-key" id="pix-key">[SUA CHAVE PIX]</span>
+          <button class="btn btn-ghost" id="copy-pix" type="button">Copiar chave</button>
+          <span class="caption" id="copy-status" aria-live="polite"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>Use apenas para conteúdo que você tem direito de baixar. Respeite os termos de cada site e os direitos autorais. O Baixador não é afiliado ao YouTube, Instagram, TikTok ou a qualquer outra plataforma.</p>
+    <nav class="footer-links label" aria-label="Links do rodapé">
+      <a href="https://github.com/gustlok1/baixador">GitHub</a>
+      <a href="https://github.com/gustlok1/baixador/releases">Versões</a>
+      <a href="https://github.com/gustlok1/baixador/issues">Reportar problema</a>
+    </nav>
+  </div>
+  <span class="ghost-mark" aria-hidden="true">baixador</span>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var toggle = document.getElementById('theme-toggle');
+  try { var saved = localStorage.getItem('baixador-tema'); if (saved === 'light' || saved === 'dark') root.setAttribute('data-theme', saved); } catch (e) {}
+  toggle.addEventListener('click', function () {
+    var current = root.getAttribute('data-theme');
+    if (!current) current = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    var next = current === 'light' ? 'dark' : 'light';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('baixador-tema', next); } catch (e) {}
+  });
+
+  var btn = document.getElementById('copy-pix');
+  var key = document.getElementById('pix-key');
+  var status = document.getElementById('copy-status');
+  btn.addEventListener('click', function () {
+    var text = key.textContent.trim();
+    var selectIt = function () {
+      var r = document.createRange(); r.selectNodeContents(key);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      status.textContent = 'Chave selecionada. Use Ctrl+C para copiar.';
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { status.textContent = 'Chave copiada.'; }, selectIt);
+    } else { selectIt(); }
+  });
+})();
+</script>
+</body>
+</html>

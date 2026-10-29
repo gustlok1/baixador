@@ -20,6 +20,7 @@ import zipfile
 from datetime import datetime
 from pathlib import Path
 
+import conversor
 import sistema
 
 VERSAO = "1.0.0"
@@ -448,6 +449,7 @@ class Nucleo:
 
         self._sujo = threading.Event()
         self._parar = threading.Event()
+        self.conversor = conversor.Conversor(self._bins_ffmpeg, self._marcar)
         self._emissor = threading.Thread(target=self._loop_emissor, daemon=True)
         self._emissor.start()
 
@@ -479,6 +481,7 @@ class Nucleo:
                 "ffmpeg_dl": dict(self.ffmpeg_dl),
                 "ytdlp_up": dict(self.ytdlp_up),
                 "eventos": self._eventos,
+                "conversoes": self.conversor.snapshot(),
             }
             self._eventos = []
         return msg
@@ -490,6 +493,7 @@ class Nucleo:
             pass
 
     def encerrar(self) -> None:
+        self.conversor.encerrar()
         self._parar.set()
         self._sujo.set()
 
@@ -559,6 +563,16 @@ class Nucleo:
     def _ffmpeg_dir_ytdlp(self) -> str:
         f = self.ffmpeg
         return f["caminho"] if f["estado"] == "pasta" else ""
+
+    def _bins_ffmpeg(self):
+        """(ffmpeg, ffprobe) para a conversão local, ou None se não estiver instalado."""
+        f = self.ffmpeg
+        if f["estado"] == "ausente":
+            return None
+        if f["estado"] == "path":
+            return (shutil.which("ffmpeg") or "ffmpeg", shutil.which("ffprobe") or "ffprobe")
+        a, b = self._exe(f["caminho"], "ffmpeg"), self._exe(f["caminho"], "ffprobe")
+        return (str(a), str(b)) if a and b else None
 
     def ffmpeg_ok(self) -> bool:
         return self.ffmpeg["estado"] != "ausente"
@@ -999,9 +1013,10 @@ class Nucleo:
 
     def tem_rodando(self) -> bool:
         with self._lock:
-            return any(i.status in EM_CURSO for i in self.itens)
+            return any(i.status in EM_CURSO for i in self.itens) or self.conversor.tem_rodando()
 
     def cancelar_para_sair(self) -> None:
+        self.conversor.cancelar_todos("sair")
         with self._lock:
             for it in self.itens:
                 if it in self._ativos:

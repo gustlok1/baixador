@@ -53,6 +53,7 @@
     </div>
     <nav class="tabs" aria-label="Seções">
       <button class="ob-tab tab" data-nav="baixar" aria-current="page">Baixar</button>
+      <button class="ob-tab tab" data-nav="converter">Converter <span class="badge" id="badge-conv" hidden>0</span></button>
       <button class="ob-tab tab" data-nav="fila">Fila <span class="badge" id="badge-fila" hidden>0</span></button>
       <button class="ob-tab tab" data-nav="historico">Histórico</button>
       <button class="ob-tab tab" data-nav="config">Configurações <span class="dot dot--danger" id="dot-config" hidden aria-label="Requer atenção"></span></button>
@@ -124,6 +125,69 @@
           <span class="caption" id="cta-caption">Cole um link válido para continuar</span>
         </div>
       </div>
+    </section>
+
+    <section class="page page--narrow" data-page="converter" hidden>
+      <div class="stack stack--16">
+        <span class="label label--faint">Arquivos do seu computador</span>
+        <h1 class="h1">Converter</h1>
+      </div>
+
+      <div class="dropzone" id="conv-drop" tabindex="0" role="button" aria-label="Escolher arquivos para converter">
+        <span class="round round--line" aria-hidden="true"><svg class="ic" width="20" height="20"><use href="#i-download"/></svg></span>
+        <div class="stack stack--4">
+          <h2 class="h3">Arraste vídeos ou áudios para cá</h2>
+          <p class="soft">Extraia o áudio de um vídeo ou troque o formato de arquivos que você já tem.</p>
+        </div>
+        <button class="ob-btn btn" data-act="conv-escolher"><svg class="ic" width="18" height="18"><use href="#i-folder"/></svg>Escolher arquivos</button>
+      </div>
+
+      <section class="plist" id="conv-prep" aria-label="Arquivos escolhidos" hidden>
+        <div class="plist__bar"><span class="label label--soft" id="conv-prep-resumo"></span><button class="ob-link link-btn" data-act="conv-limpar-prep">Remover todos</button></div>
+        <ul class="plist__rows" id="conv-prep-lista"></ul>
+      </section>
+
+      <div class="options" id="conv-opcoes" hidden>
+        <fieldset class="fieldset">
+          <legend class="label label--soft">Converter para</legend>
+          <div class="chips-groups">
+            <div class="stack stack--10"><span class="caption">Vídeo</span><div class="chips" id="conv-chips-video"></div></div>
+            <div class="stack stack--10"><span class="caption">Só o áudio</span><div class="chips" id="conv-chips-audio"></div></div>
+          </div>
+        </fieldset>
+        <fieldset class="fieldset" id="conv-fs-nivel">
+          <legend class="label label--soft">Qualidade</legend>
+          <div class="stack stack--10"><span class="caption" id="conv-nivel-legenda"></span><div class="chips" id="conv-chips-nivel"></div></div>
+        </fieldset>
+      </div>
+
+      <p class="info-note" id="conv-nota" hidden><svg class="ic" width="18" height="18" style="color:var(--accent)"><use href="#i-info"/></svg><span id="conv-nota-texto"></span></p>
+
+      <div class="cta-row" id="conv-cta-row" hidden>
+        <div class="save-to">
+          <span class="save-to__icon" aria-hidden="true"><svg class="ic" width="20" height="20"><use href="#i-folder"/></svg></span>
+          <div class="stack stack--4 min0">
+            <span class="label label--faint">Salvar em</span>
+            <span class="save-to__path" id="conv-destino">Na mesma pasta de cada arquivo</span>
+          </div>
+          <button class="ob-link link-btn" data-act="conv-pasta">Alterar</button>
+          <button class="ob-link link-btn" data-act="conv-pasta-igual" id="conv-pasta-igual" hidden>Mesma pasta</button>
+        </div>
+        <div class="cta-col">
+          <button class="ob-btn ob-solid btn btn-lg btn--solid" id="conv-cta" data-act="conv-adicionar" disabled><span id="conv-cta-label">Converter</span><span class="btn-lg__arrow" aria-hidden="true"><svg class="ic" width="18" height="18"><use href="#i-arrow"/></svg></span></button>
+          <span class="caption" id="conv-cta-caption"></span>
+        </div>
+      </div>
+
+      <section id="conv-fila" hidden aria-label="Conversões">
+        <div class="toolbar">
+          <span class="label label--soft" id="conv-resumo"></span>
+          <div class="toolbar__btns">
+            <button class="ob-btn btn" data-act="conv-limpar-feitos" id="conv-btn-limpar"><svg class="ic" width="16" height="16"><use href="#i-check"/></svg>Limpar concluídos</button>
+          </div>
+        </div>
+        <ul class="queue" id="conv-lista"></ul>
+      </section>
     </section>
 
     <!-- ============================================================== Fila -->

@@ -380,3 +380,21 @@ input[type="radio"] { width: 18px; height: 18px; margin: 3px 0 0; flex-shrink: 0
 .field input:focus-visible { outline: none; }
 .field:focus-within { border-color: var(--focus); box-shadow: 0 0 0 1px var(--focus); }
 .field.is-invalid:focus-within { border-color: var(--danger); box-shadow: 0 0 0 1px var(--danger); }
+
+/* ---- Converter (arquivos do computador) ---- */
+.dropzone { display: flex; flex-wrap: wrap; align-items: center; gap: 20px 24px; padding: 28px 32px; border: 1px dashed var(--line-strong); background: transparent; transition: border-color .3s ease, background-color .3s ease; cursor: pointer; }
+.dropzone > .stack { flex: 1 1 260px; min-width: 0; }
+.dropzone:hover, .dropzone:focus-visible, .dropzone.is-over { border-color: var(--ink); background: var(--bg-raised); }
+.dropzone.is-over { border-style: solid; }
+.cvrow { display: flex; align-items: center; gap: 16px; padding: 14px 24px; min-height: 64px; border-bottom: 1px solid var(--line); }
+.cvrow__ic { color: var(--ink-faint); }
+.cvrow__txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cvrow__meta { color: var(--ink-faint); font-size: 13px; line-height: 20px; }
+.cvrow.is-bad .cvrow__meta { color: var(--danger); }
+.cvrow.is-bad .ell { color: var(--ink-soft); }
+#conv-fila { margin-top: 8px; }
+.qcard__name .cv-arrow { color: var(--ink-faint); margin: 0 .4em; }
+
+/* Com cinco abas, o cabeçalho aperta em janelas médias: reduz o espaço antes de quebrar linha. */
+@media (max-width: 1240px) { .top { padding-inline: 32px; gap: 16px; } .tabs { gap: 4px 22px; } .tab { letter-spacing: .16em; } }
+@media (max-width: 1000px) { .tabs { gap: 4px 16px; } .tab { letter-spacing: .1em; font-size: 12px; } }

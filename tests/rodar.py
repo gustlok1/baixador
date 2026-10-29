@@ -43,6 +43,17 @@ with sync_playwright() as p:
     pg.set_viewport_size({"width":560,"height":300})
     pg.evaluate("document.querySelector('[data-act=compacto-on]').click()"); pg.wait_for_timeout(300)
     pg.screenshot(path=str(SAIDA/"compacto.png"))
+    pg.evaluate("document.querySelector('[data-act=compacto-off]').click()"); pg.set_viewport_size({"width":1100,"height":760})
+    # converter
+    pg.click('.tab[data-nav="converter"]'); pg.screenshot(path=str(SAIDA/"converter-vazio.png"))
+    pg.click('[data-act=conv-escolher]'); pg.wait_for_timeout(200)
+    pg.screenshot(path=str(SAIDA/"converter-preparo.png"), full_page=True)
+    pg.click('[data-cformato=mp3]'); pg.evaluate("window.__push()"); pg.wait_for_timeout(300)
+    pg.screenshot(path=str(SAIDA/"converter-lista.png"), full_page=True)
+    pg.click('#conv-cta'); pg.wait_for_timeout(200)
+    assert "converter_adicionar" in pg.evaluate("window.__calls.map(c=>c[0])")
+    assert pg.locator('#conv-prep').is_hidden()
+    pg.click('.tab[data-nav="baixar"]')
     # fluxo: adicionar
     pg.evaluate("document.querySelector('[data-act=compacto-off]').click()"); pg.set_viewport_size({"width":1100,"height":760})
     pg.fill("#link","https://youtu.be/zzz"); pg.wait_for_timeout(1200); pg.click("#cta"); pg.wait_for_timeout(300)

@@ -10,7 +10,7 @@ import apoio
 import core
 import sistema
 
-VERSAO = "2.0.0"
+VERSAO = "2.1.0"
 # Troque pelo endereço do seu repositório quando publicar. Vazio = o link some da tela Sobre.
 REPO_URL = ""
 RELEASES_URL = (REPO_URL.rstrip("/") + "/releases") if REPO_URL else ""
@@ -54,7 +54,7 @@ class Api:
         if self._saindo:
             return True
         if self._n.tem_rodando():
-            qtd = sum(1 for i in self._n.itens if i.status in ("baixando", "convertendo"))
+            qtd = sum(1 for i in self._n.itens if i.status in ("baixando", "convertendo")) + sum(1 for c in self._n.conversor.snapshot() if c["status"] == "convertendo")
             threading.Thread(target=self._perguntar_sair, args=(max(qtd, 1),), daemon=True).start()
             return False
         self._n.cancelar_para_sair()
@@ -79,7 +79,8 @@ class Api:
             "ytdlp": {"versao": n.versao_ytdlp()},
             "apoio": {k: v for k, v in self._apoio.items() if k != "payload_ok"},
             "historico": n.historico(),
-            "fila": n.snapshot()["fila"],
+            "fila": (lambda s: s["fila"])(n.snapshot()),
+            "conversoes": n.conversor.snapshot(),
             "ffmpeg_dl": dict(n.ffmpeg_dl),
             "ytdlp_up": dict(n.ytdlp_up),
             "primeira_vez": not cfg.get("onboarded"),
@@ -176,6 +177,42 @@ class Api:
 
     def abrir_item(self, iid: str, o_que: str) -> dict:
         return self._n.abrir_item(iid, o_que)
+
+    # ---------------------------------------------------------------- conversão local
+    def converter_escolher(self) -> list:
+        """Abre o seletor de arquivos e devolve o que foi escolhido, já lido pelo ffprobe."""
+        import webview
+        tipo = getattr(getattr(webview, "FileDialog", None), "OPEN", None)
+        if tipo is None:
+            tipo = webview.OPEN_DIALOG
+        try:
+            r = self._window.create_file_dialog(
+                tipo, allow_multiple=True,
+                file_types=("Vídeo e áudio (*.mp4;*.mkv;*.webm;*.mov;*.avi;*.wmv;*.flv;*.m4v;*.mpg;*.mpeg;*.ts;*.3gp;*.mp3;*.m4a;*.wav;*.opus;*.flac;*.ogg;*.aac;*.wma;*.aiff)", "Todos os arquivos (*.*)"))
+        except Exception:
+            return []
+        return self._n.conversor.sondar(list(r or []))
+
+    def converter_sondar(self, caminhos: list) -> list:
+        return self._n.conversor.sondar([str(c) for c in caminhos])
+
+    def converter_adicionar(self, arquivos: list, formato: str, nivel: str, pasta: str = "") -> dict:
+        return self._n.conversor.adicionar([str(a) for a in arquivos], formato, nivel, pasta)
+
+    def converter_cancelar(self, tid: str) -> None:
+        self._n.conversor.cancelar(tid)
+
+    def converter_de_novo(self, tid: str) -> None:
+        self._n.conversor.tentar_de_novo(tid)
+
+    def converter_remover(self, ids: list) -> None:
+        self._n.conversor.remover([str(i) for i in ids])
+
+    def converter_limpar(self) -> None:
+        self._n.conversor.limpar_finalizados()
+
+    def converter_abrir(self, tid: str, o_que: str) -> dict:
+        return self._n.conversor.abrir(tid, o_que)
 
     # ------------------------------------------------------------------- sistema
     def ler_clipboard(self):

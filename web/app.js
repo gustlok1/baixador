@@ -24,6 +24,7 @@
     prev: { estado: 'vazio', url: '', dados: null, seq: 0, timer: null, erroTimer: null },
     plSel: new Set(), histSel: null, filtro: 'todos', busca: '',
     dialogo: null, apoioTimer: null,
+    conv: { prep: [], lista: [], formato: 'mp3', nivel: 'Média', pasta: '', antes: {} },
   };
 
   // ------------------------------------------------------------------ Ponte com o Python
@@ -77,6 +78,7 @@
     $$('[data-page]').forEach((el) => { el.hidden = el.dataset.page !== pag; });
     $$('.tab').forEach((b) => { if (b.dataset.nav === pag) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
     $('.pages').scrollTop = 0;
+    if (pag === 'converter') desenharConverter();
     if (pag === 'fila') desenharFila();
     if (pag === 'historico') desenharHistorico();
     if (pag === 'config') { preencherConfig(); desenharSistema(); }
@@ -225,6 +227,7 @@
   }
 
   function desenharOpcoes() {
+    if (S.pagina === 'converter') desenharConverter();
     const mk = (f, grupo) => '<button class="ob-btn chip" data-formato="' + f + '" aria-pressed="' + (S.formato === f) + '"' +
       (formatoPermitido(f) ? '' : ' disabled title="Precisa do ffmpeg (Configurações › Sistema)"') + '>' + f + '</button>';
     $('#chips-video').innerHTML = VIDEO.map(mk).join('');
@@ -433,6 +436,11 @@
       let r = 'Baixando ' + Math.round(media) + '%';
       if (baixando[0].idx) r += ' · ' + baixando[0].idx; else if (espera.length) r += ' · ' + espera.length + ' na fila';
       return { rotulo: r, cor: 'var(--ink)', indet: false, pct: media };
+    }
+    const cvAtivas = S.conv.lista.filter((j) => j.status === 'convertendo');
+    if (cvAtivas.length && !espera.length) {
+      const j = cvAtivas[0];
+      return { rotulo: 'Convertendo ' + (j.indet ? '' : Math.round(j.pct) + '% · ') + j.nome, cor: 'var(--ink)', indet: j.indet, pct: j.pct };
     }
     if (espera.length) return { rotulo: 'Iniciando', cor: 'var(--ink-soft)', indet: false, pct: 0 };
     if (fim) {
@@ -684,6 +692,157 @@
     }, { passive: true });
   }
 
+
+  // ================================================================== CONVERTER
+  const CV_VIDEO = ['mp4', 'mkv', 'webm'];
+  const CV_AUDIO = ['mp3', 'm4a', 'wav', 'opus', 'flac'];
+  const CV_NIVEIS = ['Alta', 'Média', 'Pequena'];
+  const CV_SEM_PERDA = ['wav', 'flac'];
+  const CV_ROTULO = { aguardando: 'Aguardando', convertendo: 'Convertendo', concluido: 'Concluído', cancelado: 'Cancelado', erro: 'Erro' };
+
+  const cvValidos = () => S.conv.prep.filter((a) => a.ok);
+  const cvSoAudio = () => cvValidos().length > 0 && cvValidos().every((a) => a.video === false);
+
+  function cvAdicionarPrep(infos) {
+    const ja = new Set(S.conv.prep.map((a) => a.caminho));
+    (infos || []).forEach((a) => { if (!ja.has(a.caminho)) { S.conv.prep.push(a); ja.add(a.caminho); } });
+    if (cvSoAudio() && CV_VIDEO.indexOf(S.conv.formato) >= 0) S.conv.formato = 'mp3';
+    desenharConverter();
+  }
+
+  function cvLinhaPrep(a) {
+    const tipo = a.ok ? (a.video === false ? 'Só áudio' : a.video ? 'Vídeo' : '') : '';
+    const meta = a.ok ? [tipo, a.dur, a.tamanho].filter(Boolean).join(' · ') : a.erro;
+    return '<li><div class="cvrow' + (a.ok ? '' : ' is-bad') + '"><span class="cvrow__ic">' + icone(!a.ok ? 'alert' : a.video === false ? 'music' : 'play', 20) + '</span>' +
+      '<div class="cvrow__txt"><span class="ell">' + esc(a.nome) + '</span><span class="cvrow__meta ell">' + esc(meta) + '</span></div>' +
+      '<button class="ob-btn btn btn-icon" data-act="conv-tirar" data-caminho="' + esc(a.caminho) + '" aria-label="Tirar da lista" title="Tirar da lista">' + icone('x', 18) + '</button></div></li>';
+  }
+
+  function desenharConverter() {
+    const c = S.conv, ok = cvValidos(), tem = c.prep.length > 0;
+    $('#conv-prep').hidden = !tem;
+    $('#conv-opcoes').hidden = !ok.length;
+    $('#conv-cta-row').hidden = !ok.length;
+    if (tem) {
+      $('#conv-prep-lista').innerHTML = c.prep.map(cvLinhaPrep).join('');
+      const bad = c.prep.length - ok.length;
+      $('#conv-prep-resumo').textContent = ok.length + ' ' + plural(ok.length, 'arquivo pronto', 'arquivos prontos') + (bad ? ' · ' + bad + ' ' + plural(bad, 'ignorado', 'ignorados') : '');
+    }
+    const soAudio = cvSoAudio(), semFF = !ffmpegOk();
+    const chip = (f) => '<button class="ob-btn chip" data-cformato="' + f + '" aria-pressed="' + (c.formato === f) + '"' +
+      (soAudio && CV_VIDEO.indexOf(f) >= 0 ? ' disabled title="Esses arquivos não têm vídeo"' : '') + '>' + f + '</button>';
+    $('#conv-chips-video').innerHTML = CV_VIDEO.map(chip).join('');
+    $('#conv-chips-audio').innerHTML = CV_AUDIO.map(chip).join('');
+    const sp = CV_SEM_PERDA.indexOf(c.formato) >= 0;
+    $('#conv-fs-nivel').disabled = sp;
+    $('#conv-chips-nivel').innerHTML = CV_NIVEIS.map((n) => '<button class="ob-btn chip" data-cnivel="' + n + '" aria-pressed="' + (!sp && c.nivel === n) + '"' + (sp ? ' disabled' : '') + '>' + n + '</button>').join('');
+    $('#conv-nivel-legenda').textContent = sp ? 'Sem perdas: o áudio mantém toda a qualidade, então o tamanho do arquivo é maior.' :
+      c.nivel === 'Alta' ? 'Maior arquivo, melhor imagem e som.' : c.nivel === 'Pequena' ? 'Arquivo menor, com alguma perda de qualidade.' : 'Equilíbrio entre tamanho e qualidade.';
+
+    const semAudio = CV_AUDIO.indexOf(c.formato) >= 0 ? ok.filter((a) => a.audio === false).length : 0;
+    let nota = '', mostrar = false;
+    if (semFF) { nota = 'Converter precisa do ffmpeg. Instale em Configurações › Sistema.'; mostrar = true; }
+    else if (semAudio) { nota = semAudio + ' ' + plural(semAudio, 'arquivo não tem', 'arquivos não têm') + ' faixa de áudio e vai dar erro. Tire-' + plural(semAudio, 'o', 'os') + ' da lista ou escolha outro formato.'; mostrar = true; }
+    else if (ok.length) { nota = 'O arquivo original nunca é alterado. A cópia convertida é salva ao lado dele, com o mesmo nome.'; mostrar = true; }
+    $('#conv-nota').hidden = !mostrar;
+    $('#conv-nota-texto').textContent = nota;
+
+    $('#conv-destino').textContent = c.pasta || 'Na mesma pasta de cada arquivo';
+    $('#conv-pasta-igual').hidden = !c.pasta;
+    $('#conv-cta-label').textContent = 'Converter ' + ok.length + ' ' + plural(ok.length, 'arquivo', 'arquivos') + ' para ' + c.formato.toUpperCase();
+    $('#conv-cta').disabled = !ok.length || semFF;
+    $('#conv-cta-caption').textContent = semFF ? 'Falta o ffmpeg' : 'Você acompanha o progresso logo abaixo';
+    desenharConvLista();
+  }
+
+  function cvBotoes(j) {
+    const b = (act, ic, rot) => '<button class="ob-btn btn btn-icon" data-act="' + act + '" aria-label="' + rot + '" title="' + rot + '">' + icone(ic, 18) + '</button>';
+    switch (j.status) {
+      case 'convertendo': return b('cv-cancelar', 'x', 'Cancelar');
+      case 'aguardando': return b('cv-remover', 'trash', 'Remover da lista');
+      case 'concluido': return b('cv-arquivo', 'play', 'Abrir arquivo') + b('cv-pasta', 'folder', 'Mostrar na pasta') + b('cv-remover', 'trash', 'Remover da lista');
+      default: return b('cv-retry', 'retry', 'Tentar de novo') + b('cv-remover', 'trash', 'Remover da lista');
+    }
+  }
+  function cvTextos(j) {
+    if (j.status === 'aguardando') return ['Aguardando a vez', ''];
+    if (j.status === 'convertendo') return [j.indet ? 'Preparando…' : j.esq, j.dir];
+    if (j.status === 'concluido') return [j.esq, j.dir];
+    if (j.status === 'erro') return [(j.erro || '').split('\n')[0], ''];
+    return ['Cancelado', ''];
+  }
+  function cvCard(j) {
+    const [esq, dir] = cvTextos(j);
+    const barra = j.indet && j.status === 'convertendo' ? '<div class="bar ob-indet" role="progressbar" aria-label="Preparando"></div>' :
+      '<div class="bar st-' + j.status + '" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(j.pct) + '"><div class="bar__fill" style="width:' + j.pct + '%"></div></div>';
+    return '<article class="qcard" aria-label="' + esc(j.nome) + '"' + (j.erro ? ' title="' + esc(j.erro) + '"' : '') + '>' +
+      '<div class="qcard__main"><div class="qcard__title"><span class="qcard__name ell">' + esc(j.nome) + '<span class="cv-arrow">→</span>' + esc(j.formato.toUpperCase()) + '</span></div>' +
+      '<div class="qcard__meta"><span class="tag st-' + j.status + '"><span class="dot"></span>' + CV_ROTULO[j.status] + '</span>' +
+      (CV_SEM_PERDA.indexOf(j.formato) >= 0 ? '' : '<span class="tag tag--quiet">' + esc(j.nivel) + '</span>') + (j.dur ? '<span class="caption">' + esc(j.dur) + '</span>' : '') + '</div>' +
+      barra + '<div class="qcard__lr"><span class="qcard__left' + (j.status === 'erro' ? ' is-danger' : '') + '">' + esc(esq) + '</span><span class="qcard__right">' + esc(dir) + '</span></div></div>' +
+      '<div class="qcard__acts">' + cvBotoes(j) + '</div></article>';
+  }
+  const cvAssinatura = (j) => [j.status, j.indet, j.nivel, j.formato, j.dur, j.erro].join('|');
+
+  function desenharConvLista() {
+    const ul = $('#conv-lista'), lista = S.conv.lista;
+    const ids = lista.map((j) => j.id);
+    $$('li', ul).forEach((li) => { if (ids.indexOf(li.dataset.id) < 0) li.remove(); });
+    lista.forEach((j, pos) => {
+      let li = $('li[data-id="' + j.id + '"]', ul);
+      const sig = cvAssinatura(j);
+      if (!li) { li = document.createElement('li'); li.dataset.id = j.id; li.dataset.sig = sig; li.innerHTML = cvCard(j); }
+      else if (li.dataset.sig !== sig) { li.dataset.sig = sig; li.innerHTML = cvCard(j); }
+      else {
+        const [esq, dir] = cvTextos(j);
+        $('.qcard__left', li).textContent = esq; $('.qcard__right', li).textContent = dir;
+        const fill = $('.bar__fill', li); if (fill) fill.style.width = j.pct + '%';
+      }
+      if (ul.children[pos] !== li) ul.insertBefore(li, ul.children[pos] || null);
+    });
+    $('#conv-fila').hidden = !lista.length;
+    const ativos = lista.filter((j) => j.status === 'aguardando' || j.status === 'convertendo').length;
+    const feitos = lista.filter((j) => j.status === 'concluido').length;
+    $('#conv-resumo').textContent = ativos ? ativos + ' ' + plural(ativos, 'em andamento', 'em andamento') + (feitos ? ' · ' + feitos + ' ' + plural(feitos, 'concluído', 'concluídos') : '') : lista.length + ' ' + plural(lista.length, 'conversão', 'conversões');
+    $('#conv-btn-limpar').disabled = !lista.some((j) => ativos === 0 || (j.status !== 'aguardando' && j.status !== 'convertendo'));
+    const badge = $('#badge-conv'); badge.hidden = !ativos; badge.textContent = ativos;
+  }
+
+  function cvReceber(lista) {
+    const antes = S.conv.antes;
+    (lista || []).forEach((j) => {
+      if (j.status === 'concluido' && antes[j.id] && antes[j.id] !== 'concluido' && S.cfg.avisar && !S.onb) {
+        toast({ titulo: 'Conversão concluída', texto: j.saida,
+          acoes: [{ rotulo: 'Abrir arquivo', fn: () => chamar('converter_abrir', j.id, 'arquivo') }, { rotulo: 'Mostrar na pasta', fn: () => chamar('converter_abrir', j.id, 'pasta') }] });
+      }
+    });
+    S.conv.antes = {}; (lista || []).forEach((j) => { S.conv.antes[j.id] = j.status; });
+    S.conv.lista = lista || [];
+    if (S.pagina === 'converter' && !S.compacto) desenharConvLista(); else {
+      const n = S.conv.lista.filter((j) => j.status === 'aguardando' || j.status === 'convertendo').length;
+      const badge = $('#badge-conv'); badge.hidden = !n; badge.textContent = n;
+    }
+  }
+
+  async function cvEscolher() {
+    const r = await chamar('converter_escolher');
+    if (r && r.length) cvAdicionarPrep(r);
+  }
+  async function cvSoltar(files) {
+    const caminhos = Array.from(files || []).map((f) => f.pywebviewFullPath || '').filter(Boolean);
+    if (!caminhos.length) { toast({ titulo: 'Não consegui ler os arquivos soltos', texto: 'Use o botão Escolher arquivos.', icone: 'info', cor: 'line' }); return; }
+    if (S.pagina !== 'converter') irPara('converter');
+    const r = await chamar('converter_sondar', caminhos);
+    if (r) cvAdicionarPrep(r);
+  }
+  async function cvConverter() {
+    const ok = cvValidos(); if (!ok.length) return;
+    const r = await chamar('converter_adicionar', ok.map((a) => a.caminho), S.conv.formato, S.conv.nivel, S.conv.pasta);
+    if (!r || !r.ok) { await dialogo({ icone: 'alert', cor: 'danger', titulo: 'Não foi possível converter', texto: (r && r.erro) || 'Tente de novo.', botoes: [{ rotulo: 'Entendi', tipo: 'solid', valor: true }] }); return; }
+    S.conv.prep = [];
+    desenharConverter();
+  }
+
   // ====================================================================== APOIO
   function abrirApoio(manual) {
     if (!S.apoio.ativo) { if (manual) toast({ titulo: 'Convite de apoio não configurado', texto: 'Crie o arquivo apoio.json (veja o README).', icone: 'info', cor: 'line' }); return; }
@@ -890,6 +1049,18 @@
     },
     'ffmpeg-path': async () => { S.ffmpeg = (await chamar('ffmpeg_usar_path')) || S.ffmpeg; desenharSistema(); desenharOpcoes(); desenharStatus(); },
     'atualizar-ytdlp': () => chamar('ytdlp_atualizar'),
+    'conv-escolher': (b, e) => { if (e) e.stopPropagation(); return cvEscolher(); },
+    'conv-limpar-prep': () => { S.conv.prep = []; desenharConverter(); },
+    'conv-tirar': (b) => { S.conv.prep = S.conv.prep.filter((a) => a.caminho !== b.dataset.caminho); desenharConverter(); },
+    'conv-pasta': async () => { const r = await chamar('escolher_pasta', S.conv.pasta || S.cfg.pasta); if (r && r.ok) { S.conv.pasta = r.pasta; desenharConverter(); } },
+    'conv-pasta-igual': () => { S.conv.pasta = ''; desenharConverter(); },
+    'conv-adicionar': cvConverter,
+    'conv-limpar-feitos': () => chamar('converter_limpar'),
+    'cv-cancelar': (b) => chamar('converter_cancelar', idDe(b)),
+    'cv-retry': (b) => chamar('converter_de_novo', idDe(b)),
+    'cv-remover': (b) => chamar('converter_remover', [idDe(b)]),
+    'cv-arquivo': (b) => abrirComAviso('converter_abrir', idDe(b), 'arquivo'),
+    'cv-pasta': (b) => abrirComAviso('converter_abrir', idDe(b), 'pasta'),
     'onb-cta': onbCta,
     'onb-pular': concluirOnboarding,
   };
@@ -908,6 +1079,11 @@
     if (act && !act.disabled && acoes[act.dataset.act]) return acoes[act.dataset.act](act, e);
     const fmt = t.closest('[data-formato]');
     if (fmt && !fmt.disabled) { S.formato = fmt.dataset.formato; desenharBaixar(); desenharCompactoSelect(); return; }
+    const cf = t.closest('[data-cformato]');
+    if (cf && !cf.disabled) { S.conv.formato = cf.dataset.cformato; desenharConverter(); return; }
+    const cn = t.closest('[data-cnivel]');
+    if (cn && !cn.disabled) { S.conv.nivel = cn.dataset.cnivel; desenharConverter(); return; }
+    if (t.closest('#conv-drop') && !t.closest('button')) { cvEscolher(); return; }
     const q = t.closest('[data-qualidade]');
     if (q && !q.disabled) { S.qualidade = q.dataset.qualidade; desenharBaixar(); return; }
     const tema = t.closest('[data-tema]');
@@ -971,6 +1147,22 @@
     }
   });
 
+  document.addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.id === 'conv-drop') { e.preventDefault(); cvEscolher(); }
+  });
+
+  // Soltar arquivos: sem isso o WebView abriria o arquivo no lugar do app.
+  ['dragover', 'drop'].forEach((ev) => window.addEventListener(ev, (e) => { e.preventDefault(); }));
+  let arrasto = 0;
+  const zona = () => $('#conv-drop');
+  window.addEventListener('dragenter', (e) => { if (S.onb || S.compacto) return; arrasto++; if (S.pagina === 'converter') zona().classList.add('is-over'); });
+  window.addEventListener('dragleave', () => { arrasto = Math.max(0, arrasto - 1); if (!arrasto) zona().classList.remove('is-over'); });
+  window.addEventListener('drop', (e) => {
+    arrasto = 0; zona().classList.remove('is-over');
+    if (S.onb || S.compacto || !e.dataTransfer || !e.dataTransfer.files.length) return;
+    cvSoltar(e.dataTransfer.files);
+  });
+
   // Ctrl+V fora de qualquer campo cola o link direto no campo principal.
   document.addEventListener('paste', (e) => {
     const alvo = e.target;
@@ -993,6 +1185,7 @@
       S.fila = msg.fila || [];
       S.ffdl = msg.ffmpeg_dl || {};
       S.ytup = msg.ytdlp_up || {};
+      cvReceber(msg.conversoes);
       (msg.eventos || []).forEach(tratarEvento);
 
       const ff = JSON.stringify(S.ffdl);
@@ -1027,6 +1220,7 @@
     S.app = d.app || {}; S.cfg = d.config; S.ffmpeg = d.ffmpeg; S.ytdlp = d.ytdlp || {}; S.apoio = d.apoio || { ativo: false };
     S.hist = d.historico || []; S.fila = d.fila || []; S.ffdl = d.ffmpeg_dl || {}; S.ytup = d.ytdlp_up || {};
     S.formato = S.cfg.formato; S.qualidade = S.cfg.qualidade;
+    S.conv.lista = d.conversoes || [];
     ultimoFfdl = JSON.stringify(S.ffdl); ultimoYtup = JSON.stringify(S.ytup);
     aplicarTema();
     observarSecoes();
