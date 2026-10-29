@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; connect-src 'self'">
+<title>baixador</title>
+<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<!-- Ícones (traço de 1.3px, grade 20x20, igual ao design) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-paste" viewBox="0 0 20 20"><path d="M7 4H5.5A1.5 1.5 0 0 0 4 5.5v11A1.5 1.5 0 0 0 5.5 18h9a1.5 1.5 0 0 0 1.5-1.5v-11A1.5 1.5 0 0 0 14.5 4H13"/><rect x="7" y="2.5" width="6" height="3" rx="1"/></symbol>
+    <symbol id="i-link" viewBox="0 0 20 20"><path d="M8.5 11.5a3.5 3.5 0 0 0 5 0l2.5-2.5a3.5 3.5 0 0 0-5-5l-1 1"/><path d="M11.5 8.5a3.5 3.5 0 0 0-5 0L4 11a3.5 3.5 0 0 0 5 5l1-1"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 20 20"><path d="M2.5 6A1.5 1.5 0 0 1 4 4.5h3.5l2 2H16A1.5 1.5 0 0 1 17.5 8v6.5A1.5 1.5 0 0 1 16 16H4a1.5 1.5 0 0 1-1.5-1.5z"/></symbol>
+    <symbol id="i-theme" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><path d="M10 3a7 7 0 0 1 0 14z" style="fill:currentColor"/></symbol>
+    <symbol id="i-compact" viewBox="0 0 20 20"><path d="M8 3v5H3M12 17v-5h5M8 8 3 3M12 12l5 5"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 20 20"><path d="M12 3h5v5M8 17H3v-5M17 3l-5 5M3 17l5-5"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 20 20"><path d="M4 10h12M11 5l5 5-5 5"/></symbol>
+    <symbol id="i-download" viewBox="0 0 20 20"><path d="M10 3v10M5.5 8.5 10 13l4.5-4.5M4 17h12"/></symbol>
+    <symbol id="i-info" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.5"/><path d="M10 9v5M10 6.5v.01"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.5"/><path d="M10 6v4.5M10 13.5v.01"/></symbol>
+    <symbol id="i-check" viewBox="0 0 20 20"><path d="M4.5 10.5l3.5 3.5 7.5-8"/></symbol>
+    <symbol id="i-x" viewBox="0 0 20 20"><path d="M5 5l10 10M15 5 5 15"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 20 20"><rect x="5" y="5" width="10" height="10" rx="1"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 20 20"><path d="M3.5 5.5h13M8 5.5V4h4v1.5M5.5 5.5l.8 10.5h7.4l.8-10.5"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 20 20"><path d="M7.5 5v10M12.5 5v10"/></symbol>
+    <symbol id="i-play" viewBox="0 0 20 20"><path d="M8 6.5v7l6-3.5z"/></symbol>
+    <symbol id="i-retry" viewBox="0 0 20 20"><path d="M16 10a6 6 0 1 1-1.76-4.24M16 4v3.5h-3.5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 20 20"><rect x="7" y="7" width="9.5" height="9.5" rx="1.5"/><path d="M13 7V4.5a1 1 0 0 0-1-1H4.5a1 1 0 0 0-1 1V12a1 1 0 0 0 1 1H7"/></symbol>
+    <symbol id="i-search" viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.5"/><path d="M13 13l4 4"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 20 20"><path d="M5 8l5 5 5-5"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 20 20"><path d="M5 10h10"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 20 20"><path d="M10 5v10M5 10h10"/></symbol>
+    <symbol id="i-playlist" viewBox="0 0 20 20"><path d="M3 5h10M3 9.5h10M3 14h6M14 12v6l4.5-3z"/></symbol>
+    <symbol id="i-music" viewBox="0 0 20 20"><path d="M8 14.5V5.5l8-1.5v9M8 14.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM16 13a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l2.5 2.5"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 20 20"><path d="M10 16.5 4.2 10.7a3.5 3.5 0 0 1 5-5L10 6.5l.8-.8a3.5 3.5 0 0 1 5 5z"/></symbol>
+    <symbol id="i-external" viewBox="0 0 20 20"><path d="M8 4.5H5.5a1.5 1.5 0 0 0-1.5 1.5v8.5A1.5 1.5 0 0 0 5.5 16H14a1.5 1.5 0 0 0 1.5-1.5V12M11 3.5h5.5V9M16.5 3.5 9 11"/></symbol>
+  </defs>
+</svg>
+
+<!-- ======================================================== Janela completa -->
+<div id="app" class="app" hidden>
+
+  <header class="top">
+    <div class="brand">
+      <span class="wordmark">baixador</span>
+      <span class="caption">Vídeos e áudios, direto na sua pasta</span>
+    </div>
+    <nav class="tabs" aria-label="Seções">
+      <button class="ob-tab tab" data-nav="baixar" aria-current="page">Baixar</button>
+      <button class="ob-tab tab" data-nav="fila">Fila <span class="badge" id="badge-fila" hidden>0</span></button>
+      <button class="ob-tab tab" data-nav="historico">Histórico</button>
+      <button class="ob-tab tab" data-nav="config">Configurações <span class="dot dot--danger" id="dot-config" hidden aria-label="Requer atenção"></span></button>
+    </nav>
+    <div class="top__actions">
+      <button class="ob-btn btn btn-icon" data-act="abrir-apoio" id="btn-apoio" aria-label="Apoiar o projeto" title="Apoiar o projeto"><svg class="ic" width="20" height="20"><use href="#i-heart"/></svg></button>
+      <button class="ob-btn btn btn-icon" data-act="alternar-tema" aria-label="Alternar tema claro e escuro" title="Tema"><svg class="ic" width="20" height="20"><use href="#i-theme"/></svg></button>
+      <button class="ob-btn btn btn-icon" data-act="compacto-on" aria-label="Modo compacto" title="Modo compacto"><svg class="ic" width="20" height="20"><use href="#i-compact"/></svg></button>
+    </div>
+  </header>
+
+  <main class="pages">
+
+    <!-- ============================================================ Baixar -->
+    <section class="page page--narrow" data-page="baixar">
+      <div class="stack stack--16">
+        <span class="label label--faint">Novo download</span>
+        <h1 class="h1">Cole um link</h1>
+      </div>
+
+      <div class="stack stack--12">
+        <label class="label label--soft" for="link">Link do vídeo ou playlist</label>
+        <div class="field" id="field-link">
+          <svg class="ic field__icon" width="20" height="20"><use href="#i-link"/></svg>
+          <input id="link" class="input" type="text" inputmode="url" placeholder="https://…" autocomplete="off" spellcheck="false" aria-describedby="link-ajuda">
+          <button class="ob-btn btn" data-act="colar"><svg class="ic" width="18" height="18"><use href="#i-paste"/></svg>Colar</button>
+        </div>
+        <p id="link-ajuda" class="help">Aceita vídeo ou playlist. Enter adiciona à fila.</p>
+      </div>
+
+      <div id="preview"></div>
+
+      <div class="options">
+        <fieldset class="fieldset">
+          <legend class="label label--soft">Formato</legend>
+          <div class="chips-groups">
+            <div class="stack stack--10">
+              <span class="caption">Vídeo</span>
+              <div class="chips" id="chips-video"></div>
+            </div>
+            <div class="stack stack--10">
+              <span class="caption">Áudio</span>
+              <div class="chips" id="chips-audio"></div>
+            </div>
+          </div>
+        </fieldset>
+        <fieldset class="fieldset" id="fs-qualidade">
+          <legend class="label label--soft">Qualidade <span class="tag tag--line" id="tag-so-video" hidden>Só para vídeo</span></legend>
+          <div class="stack stack--10">
+            <span class="caption" id="qualidade-legenda">Todas as opções até o link ser lido</span>
+            <div class="chips" id="chips-qualidade"></div>
+          </div>
+        </fieldset>
+      </div>
+
+      <p class="info-note"><svg class="ic" width="18" height="18" style="color:var(--accent)"><use href="#i-info"/></svg><span id="quality-note">A qualidade vale só para vídeo. Áudio sai a 192 kbps.</span></p>
+
+      <div class="cta-row">
+        <div class="save-to">
+          <span class="save-to__icon" aria-hidden="true"><svg class="ic" width="20" height="20"><use href="#i-folder"/></svg></span>
+          <div class="stack stack--4 min0">
+            <span class="label label--faint">Salvar em</span>
+            <span class="save-to__path" id="save-path">-</span>
+          </div>
+          <button class="ob-link link-btn" data-act="escolher-pasta">Alterar</button>
+        </div>
+        <div class="cta-col">
+          <button class="ob-btn ob-solid btn btn-lg btn--solid" id="cta" data-act="adicionar" disabled><span id="cta-label">Adicionar à fila e baixar</span><span class="btn-lg__arrow" aria-hidden="true"><svg class="ic" width="18" height="18"><use href="#i-arrow"/></svg></span></button>
+          <span class="caption" id="cta-caption">Cole um link válido para continuar</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================== Fila -->
+    <section class="page page--wide" data-page="fila" hidden>
+      <div class="page-head">
+        <div class="stack stack--16">
+          <span class="label label--faint">Downloads</span>
+          <h1 class="h1">Fila</h1>
+        </div>
+        <p class="soft" id="fila-resumo">Nenhum download em andamento</p>
+      </div>
+
+      <div class="toolbar">
+        <label class="check-label" id="sel-all-label"><input type="checkbox" id="sel-all" disabled><span id="sel-all-text">Selecionar todos</span></label>
+        <div class="toolbar__btns">
+          <button class="ob-btn btn" data-act="cancelar-atual" data-needs-items><svg class="ic" width="16" height="16"><use href="#i-x"/></svg>Cancelar atual</button>
+          <button class="ob-btn btn" data-act="parar-tudo" data-needs-items><svg class="ic" width="16" height="16"><use href="#i-stop"/></svg>Parar tudo</button>
+          <button class="ob-btn btn" data-act="remover-sel" data-needs-items id="btn-remover-sel"><svg class="ic" width="16" height="16"><use href="#i-trash"/></svg><span>Remover selecionados</span></button>
+          <button class="ob-btn btn" data-act="limpar-concluidos" data-needs-items><svg class="ic" width="16" height="16"><use href="#i-check"/></svg>Limpar concluídos</button>
+        </div>
+      </div>
+
+      <ul class="queue" id="queue"></ul>
+
+      <section class="empty" id="queue-empty" aria-label="Fila vazia">
+        <div class="orbit" data-orbit="220:163.7,56.3:34,110:110,218"><svg class="ic" width="32" height="32" style="position:relative"><use href="#i-download"/></svg></div>
+        <h2 class="h2">Nada na fila</h2>
+        <p class="lead">Os downloads que você adicionar aparecem aqui, com progresso, velocidade e tempo restante.</p>
+        <div class="empty__btns">
+          <button class="ob-btn ob-solid btn btn-lg btn--solid" data-nav="baixar">Colar um link<span class="btn-lg__arrow" aria-hidden="true"><svg class="ic" width="18" height="18"><use href="#i-arrow"/></svg></span></button>
+          <button class="ob-btn btn btn-lg btn-lg--plain" data-nav="historico">Ver histórico</button>
+        </div>
+      </section>
+    </section>
+
+    <!-- =========================================================== Histórico -->
+    <section class="page page--wide" data-page="historico" hidden>
+      <div class="page-head">
+        <div class="stack stack--16">
+          <span class="label label--faint">Seus downloads</span>
+          <h1 class="h1">Histórico</h1>
+        </div>
+        <div class="page-head__right">
+          <span class="caption" id="hist-contagem">0 de 500 itens</span>
+          <button class="ob-btn btn" data-act="limpar-historico" id="btn-limpar-hist"><svg class="ic" width="16" height="16"><use href="#i-trash"/></svg>Limpar histórico</button>
+        </div>
+      </div>
+
+      <div class="filters">
+        <div class="search">
+          <svg class="ic" width="18" height="18"><use href="#i-search"/></svg>
+          <label class="sr" for="busca">Buscar no histórico</label>
+          <input id="busca" class="input" type="search" placeholder="Buscar por título ou canal" autocomplete="off">
+        </div>
+        <div class="filters__fmt" role="group" aria-label="Formato">
+          <span class="label label--faint">Formato</span>
+          <button class="ob-btn chip" data-filtro="todos" aria-pressed="true">Todos</button>
+          <button class="ob-btn chip" data-filtro="video" aria-pressed="false">Vídeo</button>
+          <button class="ob-btn chip" data-filtro="audio" aria-pressed="false">Áudio</button>
+        </div>
+      </div>
+
+      <div class="table-wrap ob-scroll" id="hist-wrap"><div class="table" id="hist-table"></div></div>
+
+      <section class="empty empty--hist" id="hist-empty" aria-label="Histórico vazio" hidden>
+        <div class="orbit" data-orbit="220:56.3,163.7:186,110:110,2"><svg class="ic" width="32" height="32" style="position:relative"><use href="#i-clock"/></svg></div>
+        <h2 class="h2" id="hist-empty-titulo">Seu histórico está vazio</h2>
+        <p class="lead" id="hist-empty-texto">Tudo que você baixar fica guardado aqui, até 500 itens, para abrir a pasta ou baixar de novo.</p>
+        <button class="ob-btn ob-solid btn btn-lg btn--solid" id="hist-empty-cta" data-nav="baixar">Fazer o primeiro download<span class="btn-lg__arrow" aria-hidden="true"><svg class="ic" width="18" height="18"><use href="#i-arrow"/></svg></span></button>
+      </section>
+    </section>
+
+    <!-- ======================================================= Configurações -->
+    <section class="page page--wide page--config" data-page="config" hidden>
+      <div class="stack stack--16">
+        <span class="label label--faint">Preferências</span>
+        <h1 class="h1">Configurações</h1>
+      </div>
+
+      <div class="config">
+        <nav class="config__nav" aria-label="Seções das configurações">
+          <ul>
+            <li><a href="#cfg-downloads" data-spy="cfg-downloads" aria-current="true"><span>01</span>Downloads</a></li>
+            <li><a href="#cfg-legendas" data-spy="cfg-legendas"><span>02</span>Legendas</a></li>
+            <li><a href="#cfg-sistema" data-spy="cfg-sistema"><span>03</span>Sistema<i class="dot dot--danger" id="dot-sistema" hidden></i></a></li>
+            <li><a href="#cfg-aparencia" data-spy="cfg-aparencia"><span>04</span>Aparência</a></li>
+            <li><a href="#cfg-sobre" data-spy="cfg-sobre"><span>05</span>Sobre</a></li>
+          </ul>
+        </nav>
+
+        <div class="config__body">
+          <section id="cfg-downloads">
+            <div class="section-head"><span class="caption">01</span><h2 class="h2-sm">Downloads</h2></div>
+            <div class="row">
+              <div class="row__text"><label class="row__title" for="cfg-pasta">Pasta de destino</label><span class="row__desc">Onde os arquivos são salvos.</span></div>
+              <div class="row__ctrl row__ctrl--grow">
+                <input id="cfg-pasta" class="input-box" type="text" readonly>
+                <button class="ob-btn btn" data-act="escolher-pasta">Escolher</button>
+              </div>
+            </div>
+            <div class="row">
+              <div class="row__text"><span class="row__title" id="t-playlist">Baixar playlist inteira</span><span class="row__desc">Ligado, baixa todos os itens sem perguntar. Desligado, você escolhe os vídeos ao colar o link.</span></div>
+              <button class="ob-btn switch" role="switch" aria-checked="false" aria-labelledby="t-playlist" data-cfg="playlist"><span class="switch__track"><span class="switch__thumb"></span></span></button>
+            </div>
+            <div class="row">
+              <div class="row__text"><span class="row__title" id="t-simult">Downloads simultâneos</span><span class="row__desc">Quantos itens da fila baixam ao mesmo tempo, de 1 a 5.</span></div>
+              <div class="stepper" role="group" aria-labelledby="t-simult">
+                <button class="ob-btn btn btn-icon" data-act="sim-menos" aria-label="Diminuir"><svg class="ic" width="16" height="16"><use href="#i-minus"/></svg></button>
+                <output id="cfg-simultaneos">2</output>
+                <button class="ob-btn btn btn-icon" data-act="sim-mais" aria-label="Aumentar"><svg class="ic" width="16" height="16"><use href="#i-plus"/></svg></button>
+              </div>
+            </div>
+            <div class="row">
+              <div class="row__text"><label class="row__title" for="cfg-limite">Limite de velocidade</label><span class="row__desc">Útil para não ocupar toda a internet de casa.</span></div>
+              <span class="select"><select id="cfg-limite" data-cfg="limite"><option>Sem limite</option><option>1 MB/s</option><option>5 MB/s</option><option>10 MB/s</option></select><svg class="ic" width="16" height="16"><use href="#i-chevron"/></svg></span>
+            </div>
+            <div class="row">
+              <div class="row__text"><label class="row__title" for="cfg-template">Nome do arquivo</label><span class="row__desc">Modelo do yt-dlp. Ex.: %(uploader)s - %(title)s.%(ext)s</span></div>
+              <input id="cfg-template" class="input-box input-box--mono" type="text" data-cfg="template" spellcheck="false">
+            </div>
+          </section>
+
+          <section id="cfg-legendas">
+            <div class="section-head"><span class="caption">02</span><h2 class="h2-sm">Legendas</h2></div>
+            <div class="row">
+              <div class="row__text"><span class="row__title" id="t-leg">Baixar legendas</span><span class="row__desc">Inclui as legendas geradas automaticamente pelo site.</span></div>
+              <button class="ob-btn switch" role="switch" aria-checked="false" aria-labelledby="t-leg" data-cfg="legendas"><span class="switch__track"><span class="switch__thumb"></span></span></button>
+            </div>
+            <div class="row">
+              <div class="row__text"><span class="row__title" id="t-emb">Embutir no vídeo</span><span class="row__desc">Só em mp4 e mkv. Nos outros formatos, a legenda vira um arquivo .srt ao lado do vídeo.</span></div>
+              <button class="ob-btn switch" role="switch" aria-checked="true" aria-labelledby="t-emb" data-cfg="embutir"><span class="switch__track"><span class="switch__thumb"></span></span></button>
+            </div>
+            <div class="row">
+              <div class="row__text"><label class="row__title" for="cfg-idiomas">Idiomas</label><span class="row__desc">Códigos separados por vírgula, na ordem de preferência.</span></div>
+              <input id="cfg-idiomas" class="input-box" type="text" data-cfg="idiomas" spellcheck="false">
+            </div>
+          </section>
+
+          <section id="cfg-sistema">
+            <div class="section-head"><span class="caption">03</span><h2 class="h2-sm">Sistema</h2></div>
+            <div class="row row--block"><div id="ffmpeg-card"></div></div>
+            <div class="row">
+              <div class="row__text"><label class="row__title" for="cfg-cookies">Cookies do navegador</label><span class="row__desc">Para vídeos com login ou restrição de idade. Os cookies são lidos no seu computador e não saem dele.</span></div>
+              <span class="select"><select id="cfg-cookies" data-cfg="cookies"><option>Não usar</option><option>Chrome</option><option>Edge</option><option>Firefox</option><option>Brave</option></select><svg class="ic" width="16" height="16"><use href="#i-chevron"/></svg></span>
+            </div>
+            <div class="row">
+              <div class="row__text"><span class="row__title">yt-dlp</span><span class="row__desc" id="ytdlp-desc">Versão -.</span></div>
+              <button class="ob-btn btn" data-act="atualizar-ytdlp" id="btn-ytdlp"><svg class="ic" width="16" height="16"><use href="#i-retry"/></svg><span>Atualizar yt-dlp</span></button>
+            </div>
+          </section>
+
+          <section id="cfg-aparencia">
+            <div class="section-head"><span class="caption">04</span><h2 class="h2-sm">Aparência</h2></div>
+            <div class="row">
+              <div class="row__text"><span class="row__title" id="t-tema">Tema</span><span class="row__desc">Sistema segue o tema do Windows.</span></div>
+              <div class="chips" role="group" aria-labelledby="t-tema">
+                <button class="ob-btn chip" data-tema="dark" aria-pressed="true">Escuro</button>
+                <button class="ob-btn chip" data-tema="light" aria-pressed="false">Claro</button>
+                <button class="ob-btn chip" data-tema="system" aria-pressed="false">Sistema</button>
+              </div>
+            </div>
+            <div class="row">
+              <div class="row__text"><span class="row__title" id="t-compacto">Abrir em modo compacto</span><span class="row__desc">Janela mínima, só com o campo de link e o botão de baixar.</span></div>
+              <button class="ob-btn switch" role="switch" aria-checked="false" aria-labelledby="t-compacto" data-cfg="compacto"><span class="switch__track"><span class="switch__thumb"></span></span></button>
+            </div>
+            <div class="row">
+              <div class="row__text"><span class="row__title" id="t-notif">Avisar quando terminar</span><span class="row__desc">Mostra um aviso com atalhos para abrir o arquivo ou a pasta.</span></div>
+              <button class="ob-btn switch" role="switch" aria-checked="true" aria-labelledby="t-notif" data-cfg="avisar"><span class="switch__track"><span class="switch__thumb"></span></span></button>
+            </div>
+            <div class="row">
+              <div class="row__text"><span class="row__title" id="t-abrir">Abrir a pasta ao terminar</span><span class="row__desc">Abre o explorador de arquivos quando a fila acabar.</span></div>
+              <button class="ob-btn switch" role="switch" aria-checked="false" aria-labelledby="t-abrir" data-cfg="abrir_pasta"><span class="switch__track"><span class="switch__thumb"></span></span></button>
+            </div>
+            <div class="row" id="row-convite">
+              <div class="row__text"><span class="row__title" id="t-convite">Mostrar o recado de apoio ao abrir</span><span class="row__desc">Um convite curto, com o Pix, que aparece quando o app abre. Dá para fechar com um clique.</span></div>
+              <button class="ob-btn switch" role="switch" aria-checked="true" aria-labelledby="t-convite" data-cfg="convite"><span class="switch__track"><span class="switch__thumb"></span></span></button>
+            </div>
+          </section>
+
+          <section id="cfg-sobre">
+            <div class="section-head"><span class="caption">05</span><h2 class="h2-sm">Sobre</h2></div>
+            <div class="about">
+              <div class="stack stack--10">
+                <span class="wordmark wordmark--lg">baixador</span>
+                <span class="caption" id="sobre-versao">Versão 1.0.0 · código aberto · feito com yt-dlp e ffmpeg</span>
+              </div>
+              <div class="about__links">
+                <button class="ob-link link-btn" data-act="abrir-repo" id="lnk-repo">Ver o código</button>
+                <button class="ob-link link-btn" data-act="abrir-apoio" id="lnk-apoio">Apoiar o projeto</button>
+                <button class="ob-link link-btn" data-act="abrir-releases" id="lnk-releases">Procurar atualizações</button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="bar" id="bar" role="progressbar" aria-label="Progresso geral" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="bar__fill" id="bar-fill"></div></div>
+    <div class="foot__row">
+      <span class="status" id="status"><span class="dot" id="status-dot"></span><span id="status-text">Pronto</span></span>
+      <span class="caption" id="status-right">-</span>
+    </div>
+  </footer>
+</div>
+
+<!-- ============================================================ Modo compacto -->
+<div id="compact" class="compact" hidden>
+  <div class="compact__top">
+    <div class="compact__brand"><span class="wordmark wordmark--sm">baixador</span><span class="tag-text">Compacto</span></div>
+    <button class="ob-btn btn btn-icon" data-act="compacto-off" aria-label="Voltar à janela completa" title="Janela completa"><svg class="ic" width="18" height="18"><use href="#i-expand"/></svg></button>
+  </div>
+  <div class="field field--sm">
+    <svg class="ic field__icon" width="16" height="16"><use href="#i-link"/></svg>
+    <label class="sr" for="c-link">Link do vídeo ou playlist</label>
+    <input id="c-link" class="input input--sm" type="text" placeholder="Cole um link" autocomplete="off" spellcheck="false">
+    <button class="ob-btn btn btn-icon btn-icon--bare" data-act="colar-compacto" aria-label="Colar" title="Colar"><svg class="ic" width="18" height="18"><use href="#i-paste"/></svg></button>
+  </div>
+  <div class="compact__row">
+    <span class="select select--fill"><label class="sr" for="c-fmt">Formato e qualidade</label><select id="c-fmt"></select><svg class="ic" width="16" height="16"><use href="#i-chevron"/></svg></span>
+    <button class="ob-btn ob-solid btn btn--solid" id="c-baixar" data-act="compacto-baixar"><svg class="ic" width="16" height="16"><use href="#i-download"/></svg>Baixar</button>
+  </div>
+  <div class="compact__foot">
+    <div class="bar" id="c-bar" role="progressbar" aria-label="Progresso" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="bar__fill" id="c-bar-fill"></div></div>
+    <div class="compact__status"><span id="c-left" class="compact__left">Pronto</span><span id="c-right" class="caption-sm">0 na fila</span></div>
+  </div>
+</div>
+
+<!-- ============================================================ Primeira execução -->
+<div id="onboarding" class="app onboarding" hidden></div>
+
+<!-- ================================================================ Sobreposições -->
+<div id="drawer-wrap" class="overlay overlay--drawer" hidden></div>
+
+<div id="dialog-wrap" class="overlay" hidden>
+  <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="dialog-titulo" id="dialog"></div>
+</div>
+
+<div id="apoio" class="overlay" hidden>
+  <div class="modal modal--apoio" role="dialog" aria-modal="true" aria-labelledby="apoio-titulo">
+    <button class="ob-btn btn btn-icon modal__close" data-act="fechar-apoio" aria-label="Fechar"><svg class="ic" width="18" height="18"><use href="#i-x"/></svg></button>
+    <div class="apoio__qr-col" id="apoio-qr-col">
+      <div class="apoio__qr" id="apoio-qr" role="img" aria-label="QR Code do Pix"></div>
+      <span class="caption">Aponte a câmera do app do seu banco</span>
+    </div>
+    <div class="apoio__body">
+      <span class="label label--faint">Um recado rápido</span>
+      <h2 class="h2-md" id="apoio-titulo">Este app é gratuito e feito com carinho.</h2>
+      <p class="soft">O baixador é de código aberto, sem anúncios e sem pegadinhas. Se ele te poupou um tempinho e você quiser ajudar a criar mais iniciativas assim, um Pix de qualquer valor já deixa meu dia mais feliz. Se não der, tudo bem: pode usar à vontade, o app continua o mesmo.</p>
+      <div class="apoio__btns">
+        <button class="ob-btn ob-solid btn btn--solid" data-act="copiar-pix" id="btn-copiar-pix"><svg class="ic" width="16" height="16"><use href="#i-copy"/></svg><span>Copiar Pix copia e cola</span></button>
+        <button class="ob-btn btn" data-act="abrir-link-apoio" id="btn-link-apoio" hidden><svg class="ic" width="16" height="16"><use href="#i-external"/></svg>Abrir link</button>
+        <button class="ob-link link-btn" data-act="fechar-apoio">Agora não</button>
+      </div>
+      <p class="caption">Esse recado aparece quando o app abre. Dá para desligar em Configurações › Aparência.</p>
+    </div>
+  </div>
+</div>
+
+<div id="toasts" class="toasts" aria-live="polite"></div>
+
+<script src="util.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
