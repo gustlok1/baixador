@@ -62,6 +62,29 @@ class Apoio(unittest.TestCase):
     def test_sem_arquivo_desliga(self):
         self.assertFalse(apoio.carregar(Path(tempfile.mkdtemp()))["ativo"])
 
+    def _cfg(self, dados):
+        import json
+        d = Path(tempfile.mkdtemp()); (d / "apoio.json").write_text(json.dumps(dados), encoding="utf-8")
+        return apoio.carregar(d)
+
+    def test_formas_de_apoio(self):
+        r = self._cfg({"pix_copia_e_cola": "errado", "cartao_link": "https://mpago.la/x", "internacional_link": "http://inseguro",
+                       "cripto": [{"moeda": "BTC", "rede": "Bitcoin", "endereco": "bc1qabc"}, {"moeda": "USDT", "rede": "", "endereco": "T1"}]})
+        self.assertTrue(r["ativo"])
+        self.assertEqual(r["payload"], "")           # Pix inválido não é mostrado
+        self.assertEqual(r["internacional"], "")     # só https
+        self.assertEqual([c["moeda"] for c in r["cripto"]], ["BTC"])  # sem rede não entra
+
+    def test_exemplo_vazio_desliga(self):
+        import json
+        self.assertFalse(self._cfg(json.loads(Path(__file__).resolve().parent.parent.joinpath("apoio.exemplo.json").read_text(encoding="utf-8")))["ativo"])
+
+    def test_so_mensal_ativa(self):
+        self.assertEqual(self._cfg({"mensal_link": "https://apoia.se/x"})["mensal"], "https://apoia.se/x")
+
+    def test_link_antigo_vira_cartao(self):
+        self.assertEqual(self._cfg({"link": "https://a.b/c"})["cartao"], "https://a.b/c")
+
     def test_crc_pix(self):
         p = "00020126580014br.gov.bcb.pix0136123e4567-e12b-12d1-a456-4266554400005204000053039865802BR5913Fulano de Tal6008BRASILIA62070503***6304"
         self.assertEqual(len(apoio.crc16_pix(p)), 4)

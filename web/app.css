@@ -398,3 +398,23 @@ input[type="radio"] { width: 18px; height: 18px; margin: 3px 0 0; flex-shrink: 0
 /* Com cinco abas, o cabeçalho aperta em janelas médias: reduz o espaço antes de quebrar linha. */
 @media (max-width: 1240px) { .top { padding-inline: 32px; gap: 16px; } .tabs { gap: 4px 22px; } .tab { letter-spacing: .16em; } }
 @media (max-width: 1000px) { .tabs { gap: 4px 16px; } .tab { letter-spacing: .1em; font-size: 12px; } }
+
+/* ---- Apoie ---- */
+.pay { display: flex; flex-direction: column; gap: 16px; }
+.pay-card { display: flex; flex-wrap: wrap; align-items: center; gap: 20px 28px; padding: 24px 28px; border: 1px solid var(--line); background: var(--bg-raised); }
+.pay-card__txt { flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.pay-card__title { font-size: 20px; line-height: 28px; font-weight: 400; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pay-card__btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.pay-card--pix { align-items: stretch; }
+.pay-qr { flex: 0 0 168px; width: 168px; padding: 8px; background: #f5f6f8; border: 1px solid var(--line-strong); align-self: center; }
+.pay-qr svg { display: block; width: 100%; height: auto; }
+.pay-qr--sm { flex-basis: 140px; width: 140px; }
+.crypto { list-style: none; margin: 0; padding: 0; width: 100%; display: flex; flex-direction: column; }
+.crypto li { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 16px 0; border-top: 1px solid var(--line); }
+.crypto__info { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.crypto__addr { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; font-size: 13px; line-height: 20px; color: var(--ink); overflow-wrap: anywhere; user-select: all; }
+.crypto__qr { flex-basis: 100%; display: flex; justify-content: flex-start; }
+.pay-card--cripto > .pay-card__txt { flex-basis: 100%; }
+.tag--warn { border-color: var(--warn); color: var(--warn); }
+@media (max-width: 1240px) { .tabs { gap: 4px 18px; } .tab { letter-spacing: .12em; } }
+@media (max-width: 1000px) { .tabs { gap: 4px 12px; } .tab { letter-spacing: .08em; } }

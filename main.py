@@ -10,7 +10,7 @@ import apoio
 import core
 import sistema
 
-VERSAO = "2.1.0"
+VERSAO = "2.2.0"
 # Troque pelo endereço do seu repositório quando publicar. Vazio = o link some da tela Sobre.
 REPO_URL = ""
 RELEASES_URL = (REPO_URL.rstrip("/") + "/releases") if REPO_URL else ""
@@ -77,7 +77,7 @@ class Api:
             "config": cfg,
             "ffmpeg": n.ffmpeg,
             "ytdlp": {"versao": n.versao_ytdlp()},
-            "apoio": {k: v for k, v in self._apoio.items() if k != "payload_ok"},
+            "apoio": self._apoio,
             "historico": n.historico(),
             "fila": (lambda s: s["fila"])(n.snapshot()),
             "conversoes": n.conversor.snapshot(),

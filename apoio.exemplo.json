@@ -1,5 +1,19 @@
 {
-  "pix_copia_e_cola": "COLE_AQUI_O_PIX_COPIA_E_COLA_DA_SUA_CHAVE",
-  "link": "",
-  "_dica": "link é opcional (ex.: página de apoio). Sem este arquivo o convite não aparece."
+  "_leia": "Copie para apoio.json e preencha só o que for usar. Campos vazios somem da aba Apoie. Endereços de cripto: confira a REDE, mandar na rede errada perde o dinheiro.",
+  "pix_copia_e_cola": "",
+  "cartao_link": "",
+  "mensal_link": "",
+  "internacional_link": "",
+  "cripto": [
+    {
+      "moeda": "Bitcoin (BTC)",
+      "rede": "Bitcoin",
+      "endereco": ""
+    },
+    {
+      "moeda": "USDT",
+      "rede": "Tron (TRC-20)",
+      "endereco": ""
+    }
+  ]
 }

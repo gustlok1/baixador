@@ -23,7 +23,7 @@ if not defined PY (
 %PY% -m pip install -r requirements.txt pyinstaller || goto erro
 set EXTRA=
 if exist apoio.json set EXTRA=--add-data "apoio.json;."
-%PY% -m PyInstaller --noconfirm --clean --onefile --windowed --name Baixador ^
+%PY% -m PyInstaller --noconfirm --clean --onefile --windowed --name Baixador --icon assets\icone.ico ^
   --add-data "web;web" %EXTRA% --collect-all yt_dlp main.py || goto erro
 echo.
 echo Pronto: dist\Baixador.exe

@@ -37,18 +37,57 @@ def qr_svg(texto: str) -> str:
     )
 
 
+def _link(v) -> str:
+    v = str(v or "").strip()
+    return v if v.lower().startswith("https://") else ""
+
+
 def carregar(pasta: Path) -> dict:
-    """Lê <pasta>/apoio.json. Sem o arquivo (ou com ele vazio), o convite fica desligado."""
+    """
+    Lê <pasta>/apoio.json. Sem o arquivo, ou com tudo vazio, a aba Apoie e o recado ficam desligados.
+
+    Campos (todos opcionais):
+      pix_copia_e_cola   texto do Pix copia e cola (vira QR code)
+      cartao_link        link de pagamento para cartão (ex.: Mercado Pago)
+      mensal_link        apoio mensal recorrente (ex.: campanha no APOIA.se)
+      internacional_link link para quem está fora do Brasil (ex.: Ko-fi)
+      cripto             lista de {"moeda", "rede", "endereco"}
+      link               nome antigo de cartao_link (ainda aceito)
+    """
     arq = Path(pasta) / "apoio.json"
     try:
         dados = json.loads(arq.read_text(encoding="utf-8"))
+        if not isinstance(dados, dict):
+            raise ValueError
     except Exception:
         return {"ativo": False}
+
     payload = str(dados.get("pix_copia_e_cola", "")).strip()
-    link = str(dados.get("link", "")).strip()
-    if link and not link.lower().startswith(("https://", "http://")):
-        link = ""
-    if not payload and not link:
+    if payload.upper().startswith("COLE_AQUI"):
+        payload = ""
+    pix_ok = pix_valido(payload) if payload else False
+    if payload and not pix_ok:
+        payload = ""  # um Pix com erro de digitação não chega a quem quer pagar
+    cartao = _link(dados.get("cartao_link") or dados.get("link"))
+    internacional = _link(dados.get("internacional_link"))
+    mensal = _link(dados.get("mensal_link"))
+
+    cripto = []
+    for c in dados.get("cripto") or []:
+        if not isinstance(c, dict):
+            continue
+        end = str(c.get("endereco", "")).strip()
+        moeda = str(c.get("moeda", "")).strip()
+        rede = str(c.get("rede", "")).strip()
+        if not end or not moeda or not rede or len(end) > 200 or any(ch.isspace() for ch in end):
+            continue
+        try:
+            svg = qr_svg(end)
+        except Exception:
+            svg = ""
+        cripto.append({"moeda": moeda[:40], "rede": rede[:60], "endereco": end, "svg": svg})
+
+    if not (payload or cartao or mensal or internacional or cripto):
         return {"ativo": False}
     svg = ""
     if payload:
@@ -59,7 +98,10 @@ def carregar(pasta: Path) -> dict:
     return {
         "ativo": True,
         "payload": payload,
-        "link": link,
         "svg": svg,
-        "payload_ok": pix_valido(payload) if payload else None,
+        "link": cartao,  # o recado de abertura usa este nome
+        "cartao": cartao,
+        "mensal": mensal,
+        "internacional": internacional,
+        "cripto": cripto,
     }

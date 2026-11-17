@@ -39,6 +39,10 @@
     <symbol id="i-music" viewBox="0 0 20 20"><path d="M8 14.5V5.5l8-1.5v9M8 14.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM16 13a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></symbol>
     <symbol id="i-clock" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l2.5 2.5"/></symbol>
     <symbol id="i-heart" viewBox="0 0 20 20"><path d="M10 16.5 4.2 10.7a3.5 3.5 0 0 1 5-5L10 6.5l.8-.8a3.5 3.5 0 0 1 5 5z"/></symbol>
+    <symbol id="i-card" viewBox="0 0 20 20"><rect x="2.5" y="4.5" width="15" height="11" rx="1.5"/><path d="M2.5 8h15M5.5 12.5h3"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><path d="M3 10h14M10 3c2 2 3 4.5 3 7s-1 5-3 7c-2-2-3-4.5-3-7s1-5 3-7z"/></symbol>
+    <symbol id="i-coin" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/><path d="M8 6.5h3a1.75 1.75 0 0 1 0 3.5H8h3.5a1.75 1.75 0 0 1 0 3.5H8zM9 5v1.5M9 13.5V15"/></symbol>
+    <symbol id="i-qr" viewBox="0 0 20 20"><rect x="3" y="3" width="5" height="5"/><rect x="12" y="3" width="5" height="5"/><rect x="3" y="12" width="5" height="5"/><path d="M12 12h2v2h-2zM15 15h2v2h-2zM12 16v1M16 12h1"/></symbol>
     <symbol id="i-external" viewBox="0 0 20 20"><path d="M8 4.5H5.5a1.5 1.5 0 0 0-1.5 1.5v8.5A1.5 1.5 0 0 0 5.5 16H14a1.5 1.5 0 0 0 1.5-1.5V12M11 3.5h5.5V9M16.5 3.5 9 11"/></symbol>
   </defs>
 </svg>
@@ -56,6 +60,7 @@
       <button class="ob-tab tab" data-nav="converter">Converter <span class="badge" id="badge-conv" hidden>0</span></button>
       <button class="ob-tab tab" data-nav="fila">Fila <span class="badge" id="badge-fila" hidden>0</span></button>
       <button class="ob-tab tab" data-nav="historico">Histórico</button>
+      <button class="ob-tab tab" data-nav="apoie" id="tab-apoie" hidden>Apoie</button>
       <button class="ob-tab tab" data-nav="config">Configurações <span class="dot dot--danger" id="dot-config" hidden aria-label="Requer atenção"></span></button>
     </nav>
     <div class="top__actions">
@@ -188,6 +193,17 @@
         </div>
         <ul class="queue" id="conv-lista"></ul>
       </section>
+    </section>
+
+    <!-- ============================================================== Apoie -->
+    <section class="page page--narrow" data-page="apoie" hidden>
+      <div class="stack stack--16">
+        <span class="label label--faint">Apoie o projeto</span>
+        <h1 class="h1">Este app é gratuito</h1>
+        <p class="lead">E vai continuar assim, sem anúncios e de código aberto. Se ele te poupou tempo e você quiser ajudar a criar mais iniciativas como esta, qualquer valor ajuda. Se não der, tudo bem: use à vontade.</p>
+      </div>
+      <div class="pay" id="apoie-metodos"></div>
+      <p class="info-note"><svg class="ic" width="18" height="18" style="color:var(--accent)"><use href="#i-info"/></svg><span>O app não guarda nem vê nenhum dado de pagamento. Cartão e links internacionais abrem a página segura do serviço no seu navegador.</span></p>
     </section>
 
     <!-- ============================================================== Fila -->
@@ -437,10 +453,10 @@
     <div class="apoio__body">
       <span class="label label--faint">Um recado rápido</span>
       <h2 class="h2-md" id="apoio-titulo">Este app é gratuito e feito com carinho.</h2>
-      <p class="soft">O baixador é de código aberto, sem anúncios e sem pegadinhas. Se ele te poupou um tempinho e você quiser ajudar a criar mais iniciativas assim, um Pix de qualquer valor já deixa meu dia mais feliz. Se não der, tudo bem: pode usar à vontade, o app continua o mesmo.</p>
+      <p class="soft">O baixador é de código aberto, sem anúncios e sem pegadinhas. Se ele te poupou um tempinho e você quiser ajudar a criar mais iniciativas assim, um apoio de qualquer valor já deixa meu dia mais feliz. Se não der, tudo bem: pode usar à vontade, o app continua o mesmo.</p>
       <div class="apoio__btns">
         <button class="ob-btn ob-solid btn btn--solid" data-act="copiar-pix" id="btn-copiar-pix"><svg class="ic" width="16" height="16"><use href="#i-copy"/></svg><span>Copiar Pix copia e cola</span></button>
-        <button class="ob-btn btn" data-act="abrir-link-apoio" id="btn-link-apoio" hidden><svg class="ic" width="16" height="16"><use href="#i-external"/></svg>Abrir link</button>
+        <button class="ob-btn btn" data-act="apoio-outras" id="btn-link-apoio"><span>Outras formas</span></button>
         <button class="ob-link link-btn" data-act="fechar-apoio">Agora não</button>
       </div>
       <p class="caption">Esse recado aparece quando o app abre. Dá para desligar em Configurações › Aparência.</p>

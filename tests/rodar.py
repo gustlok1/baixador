@@ -29,7 +29,7 @@ with sync_playwright() as p:
         pg.screenshot(path=str(SAIDA/f"{n}-baixar-playlist.png"))
         pg.fill("#link", "nada"); pg.wait_for_timeout(900)
         pg.screenshot(path=str(SAIDA/f"{n}-baixar-invalido.png"))
-        for nav in ("fila","historico","config"):
+        for nav in ("fila","historico","config","apoie"):
             pg.click(f'.tab[data-nav="{nav}"]'); pg.wait_for_timeout(200)
             pg.screenshot(path=str(SAIDA/f"{n}-{nav}.png"))
         pg.click('.tab[data-nav="fila"]'); pg.dblclick('li[data-id="e"] .qcard'); pg.wait_for_timeout(200)
@@ -53,6 +53,10 @@ with sync_playwright() as p:
     pg.click('#conv-cta'); pg.wait_for_timeout(200)
     assert "converter_adicionar" in pg.evaluate("window.__calls.map(c=>c[0])")
     assert pg.locator('#conv-prep').is_hidden()
+    pg.click('.tab[data-nav="apoie"]'); pg.click('[data-act=apoie-qr]'); pg.click('[data-chave="cripto:1"]')
+    pg.screenshot(path=str(SAIDA/"apoie-qr.png"), full_page=True)
+    assert ['copiar','TExemploExemploExemploExemplo1234'] in pg.evaluate("window.__calls")
+    pg.click('[data-chave=cartao]'); assert ['abrir_link','https://mpago.la/x'] in pg.evaluate("window.__calls")
     pg.click('.tab[data-nav="baixar"]')
     # fluxo: adicionar
     pg.evaluate("document.querySelector('[data-act=compacto-off]').click()"); pg.set_viewport_size({"width":1100,"height":760})

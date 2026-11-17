@@ -26,15 +26,21 @@ Sem instalar nada: suba o projeto no GitHub e rode o workflow "Build Windows" (a
 
 Na primeira execução o app procura o ffmpeg e, no Windows, oferece baixar automaticamente (cerca de 90 MB, guardado em `~/.baixador_videos/ffmpeg`). Sem ele funcionam só mp4 e m4a, em qualidade reduzida.
 
-## Convite de apoio (opcional)
+## Apoio (opcional)
 
-Ao abrir, o app mostra um recado gratuito com QR code Pix. Para ativar na sua cópia:
+A aba **Apoie** e o recado que aparece ao abrir o app mostram as formas de apoio configuradas no `apoio.json`. Campos vazios simplesmente não aparecem. Veja o modelo em `apoio.exemplo.json`:
 
-1. Copie `apoio.exemplo.json` para `apoio.json`.
-2. Cole o seu Pix copia e cola.
-3. Gere o .exe de novo (o `apoio.json` vai embutido).
+- `pix_copia_e_cola`: o código do Pix (vira QR code). O app confere o código e ignora se estiver errado.
+- `cartao_link`: link de pagamento para cartão, como um link do Mercado Pago (precisa ser https).
+- `mensal_link`: apoio mensal recorrente, como uma campanha no APOIA.se.
+- `internacional_link`: página para quem está fora do Brasil, como o Ko-fi.
+- `cripto`: lista de `{"moeda", "rede", "endereco"}`. A rede aparece em destaque, porque enviar na rede errada perde o valor.
 
-O `apoio.json` está no `.gitignore`: não publique a sua chave. Dica: use uma chave Pix aleatória, porque o nome do recebedor aparece no app do banco de quem paga.
+**No .exe oficial (GitHub Actions):** o `apoio.json` não vai para o repositório. Em vez disso, cole o conteúdo dele numa variável do repositório chamada `APOIO_JSON` (Settings > Secrets and variables > Actions > aba Variables). O workflow grava o arquivo e o embute no .exe. Sem a variável, a aba Apoie não aparece.
+
+**Na sua máquina:** copie `apoio.exemplo.json` para `apoio.json`, preencha e rode `gerar_exe.bat`.
+
+Dados de pagamento ficam visíveis para quem usa o app. Use uma chave Pix aleatória para não expor CPF ou telefone. O nome do recebedor sempre aparece no app do banco de quem paga.
 
 ## Testes
 

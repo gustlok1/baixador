@@ -82,6 +82,7 @@
     if (pag === 'fila') desenharFila();
     if (pag === 'historico') desenharHistorico();
     if (pag === 'config') { preencherConfig(); desenharSistema(); }
+    if (pag === 'apoie') desenharApoie();
     if (pag === 'baixar') setTimeout(() => $('#link').focus(), 0);
   }
 
@@ -619,7 +620,8 @@
     $('#lnk-releases').hidden = !sobre.releases;
     $('#lnk-apoio').hidden = !S.apoio.ativo;
     $('#row-convite').hidden = !S.apoio.ativo;
-    $('#btn-apoio').hidden = !S.apoio.ativo;
+    $('#btn-apoio').hidden = true; // a aba Apoie substitui o coração
+    $('#tab-apoie').hidden = !S.apoio.ativo;
     desenharYtdlp();
   }
 
@@ -843,6 +845,59 @@
     desenharConverter();
   }
 
+
+  // ======================================================================= APOIE
+  function desenharApoie() {
+    const a = S.apoio, out = [];
+    const btnCopiar = (chave, rot) => '<button class="ob-btn btn" data-act="apoie-copiar" data-chave="' + chave + '">' + icone('copy', 16) + '<span>' + rot + '</span></button>';
+    const btnLink = (chave, rot, solid) => '<button class="ob-btn btn' + (solid ? ' ob-solid btn--solid' : '') + '" data-act="apoie-link" data-chave="' + chave + '">' + icone('external', 16) + rot + '</button>';
+    if (a.payload) {
+      out.push('<section class="pay-card pay-card--pix" aria-label="Pix">' + (a.svg ? '<div class="pay-qr" role="img" aria-label="QR code do Pix">' + a.svg + '</div>' : '') +
+        '<div class="pay-card__txt"><span class="pay-card__title">' + icone('qr', 20) + 'Pix<span class="tag tag--accent">Sem taxas</span></span>' +
+        '<p class="soft">Aponte a câmera do app do seu banco para o QR code, ou copie o código e cole na opção "Pix copia e cola". Você escolhe o valor.</p>' +
+        '<div class="pay-card__btns">' + btnCopiar('pix', 'Copiar Pix copia e cola') + '</div></div></section>');
+    }
+    if (a.cartao) {
+      out.push('<section class="pay-card" aria-label="Cartão"><span class="round round--line" aria-hidden="true">' + icone('card', 20) + '</span>' +
+        '<div class="pay-card__txt"><span class="pay-card__title">Cartão de crédito ou débito</span>' +
+        '<p class="soft">Abre uma página de pagamento segura no navegador. Também aceita boleto e Pix por lá.</p></div>' +
+        '<div class="pay-card__btns">' + btnLink('cartao', 'Pagar com cartão', !a.payload) + '</div></section>');
+    }
+    if (a.mensal) {
+      out.push('<section class="pay-card" aria-label="Apoio mensal"><span class="round round--line" aria-hidden="true">' + icone('heart', 20) + '</span>' +
+        '<div class="pay-card__txt"><span class="pay-card__title">Apoio mensal</span>' +
+        '<p class="soft">Um valor pequeno todo mês, no cartão, boleto ou Pix. Ajuda a manter o app atualizado e você cancela quando quiser.</p></div>' +
+        '<div class="pay-card__btns">' + btnLink('mensal', 'Apoiar todo mês') + '</div></section>');
+    }
+    if (a.internacional) {
+      out.push('<section class="pay-card" aria-label="Fora do Brasil"><span class="round round--line" aria-hidden="true">' + icone('globe', 20) + '</span>' +
+        '<div class="pay-card__txt"><span class="pay-card__title">Fora do Brasil</span>' +
+        '<p class="soft">Support from abroad with a card or PayPal.</p></div>' +
+        '<div class="pay-card__btns">' + btnLink('internacional', 'Abrir página') + '</div></section>');
+    }
+    if (a.cripto && a.cripto.length) {
+      const linhas = a.cripto.map((c, i) => '<li><div class="crypto__info"><span class="pay-card__title" style="font-size:16px;line-height:24px">' + esc(c.moeda) +
+        '<span class="tag tag--warn">Rede ' + esc(c.rede) + '</span></span><span class="crypto__addr">' + esc(c.endereco) + '</span></div>' +
+        '<div class="pay-card__btns">' + btnCopiar('cripto:' + i, 'Copiar endereço') +
+        (c.svg ? '<button class="ob-btn btn btn-icon" data-act="apoie-qr" data-i="' + i + '" aria-label="Mostrar QR code" title="Mostrar QR code" aria-expanded="false">' + icone('qr', 18) + '</button>' : '') + '</div>' +
+        (c.svg ? '<div class="crypto__qr" id="cqr-' + i + '" hidden><div class="pay-qr pay-qr--sm" role="img" aria-label="QR code do endereço">' + c.svg + '</div></div>' : '') + '</li>').join('');
+      out.push('<section class="pay-card pay-card--cripto" aria-label="Cripto"><div class="pay-card__txt"><span class="pay-card__title">' + icone('coin', 20) + 'Cripto</span>' +
+        '<p class="soft">Envie só pela rede indicada em cada endereço. Na rede errada o valor se perde e não tem como recuperar.</p></div>' +
+        '<ul class="crypto">' + linhas + '</ul></section>');
+    }
+    $('#apoie-metodos').innerHTML = out.join('');
+  }
+
+  function valorApoio(chave) {
+    const a = S.apoio;
+    if (chave === 'pix') return a.payload;
+    if (chave === 'cartao') return a.cartao;
+    if (chave === 'internacional') return a.internacional;
+    if (chave === 'mensal') return a.mensal;
+    if (chave.indexOf('cripto:') === 0) { const c = (a.cripto || [])[+chave.slice(7)]; return c ? c.endereco : ''; }
+    return '';
+  }
+
   // ====================================================================== APOIO
   function abrirApoio(manual) {
     if (!S.apoio.ativo) { if (manual) toast({ titulo: 'Convite de apoio não configurado', texto: 'Crie o arquivo apoio.json (veja o README).', icone: 'info', cor: 'line' }); return; }
@@ -850,7 +905,8 @@
     $('#apoio-qr-col').hidden = !a.svg;
     $('#apoio-qr').innerHTML = a.svg || '';
     $('#btn-copiar-pix').hidden = !a.payload;
-    $('#btn-link-apoio').hidden = !a.link;
+    $('#btn-link-apoio').hidden = !!a.payload && !(a.cartao || a.mensal || a.internacional || (a.cripto && a.cripto.length));
+    $('#btn-link-apoio span').textContent = a.payload ? 'Outras formas' : 'Ver formas de apoiar';
     $('#apoio').hidden = false;
     $('#btn-copiar-pix span').textContent = 'Copiar Pix copia e cola';
     ($('#btn-copiar-pix').hidden ? $('[data-act="fechar-apoio"].link-btn') : $('#btn-copiar-pix')).focus();
@@ -998,14 +1054,22 @@
     'compacto-on': entrarCompacto,
     'compacto-off': sairCompacto,
     'compacto-baixar': baixarCompacto,
-    'abrir-apoio': () => abrirApoio(true),
+    'abrir-apoio': () => { if (S.apoio.ativo) irPara('apoie'); else abrirApoio(true); },
+    'apoio-outras': () => { fecharApoio(); irPara('apoie'); },
+    'apoie-copiar': async (b) => {
+      const ok = await copiarTexto(valorApoio(b.dataset.chave));
+      const sp = $('span', b), antes = sp.textContent;
+      sp.textContent = ok ? 'Copiado, obrigado!' : 'Não consegui copiar';
+      setTimeout(() => { sp.textContent = antes; }, 2500);
+    },
+    'apoie-link': (b) => chamar('abrir_link', valorApoio(b.dataset.chave)),
+    'apoie-qr': (b) => { const el = $('#cqr-' + b.dataset.i); el.hidden = !el.hidden; b.setAttribute('aria-expanded', String(!el.hidden)); },
     'fechar-apoio': fecharApoio,
     'copiar-pix': async () => {
       const ok = await copiarTexto(S.apoio.payload);
       const s = $('#btn-copiar-pix span'); s.textContent = ok ? 'Copiado, obrigado!' : 'Não consegui copiar';
       setTimeout(() => { s.textContent = 'Copiar Pix copia e cola'; }, 2800);
     },
-    'abrir-link-apoio': () => chamar('abrir_link', S.apoio.link),
     'abrir-repo': () => chamar('abrir_link', S.app.repo),
     'abrir-releases': () => chamar('abrir_link', S.app.releases),
     'cancelar-atual': () => chamar('cancelar_atuais'),

@@ -13,8 +13,20 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - run: python -m pip install -r requirements.txt pyinstaller
-      # Build público: sem apoio.json (o convite fica desligado). Para ter o convite, gere o .exe na sua máquina.
-      - run: python -m PyInstaller --noconfirm --onefile --windowed --name Baixador --add-data "web;web" --collect-all yt_dlp main.py
+      - name: Testes
+        run: python -m unittest discover tests -p "test_nucleo.py"
+      # Formas de apoio: vêm da variável APOIO_JSON do repositório (Settings > Secrets and variables > Actions > Variables).
+      # Assim os dados de pagamento entram no .exe oficial sem ficar no código. Sem a variável, a aba Apoie não aparece.
+      - name: Configuração de apoio
+        env:
+          APOIO_JSON: ${{ vars.APOIO_JSON }}
+        run: python tools/escrever_apoio.py
+      - name: Gerar o .exe
+        shell: pwsh
+        run: |
+          $extra = @()
+          if (Test-Path apoio.json) { $extra = @('--add-data', 'apoio.json;.') }
+          python -m PyInstaller --noconfirm --onefile --windowed --name Baixador --icon assets/icone.ico --add-data "web;web" @extra --collect-all yt_dlp main.py
       - uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with: { files: dist/Baixador.exe }
